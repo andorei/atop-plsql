@@ -5,6 +5,7 @@ create or replace package at_type is
 Changelog
     2017-12-27 Andrei Trofimov create package.
     2018-02-08 Andrei Trofimov add named_varchars type.
+    2018-06-22 Andrei Trofimov raise_application_error in assetred_% procedures.
 
 ********************************************************************************
 Copyright (C) 2017-2018 by Andrei Trofimov
@@ -153,7 +154,7 @@ THE SOFTWARE.
         c99 varchar2 default null,
         c100 varchar2 default null
     ) return at_row;
-    
+
     -- Conversion from 1 to 10 assosiative arrays to SQL nested table at_table10.
     function to_at_table10(
         c1 in at_type.varchars,
@@ -169,17 +170,17 @@ THE SOFTWARE.
     ) return at_table10;
 
     -- Conversion functions that raise assertion error if conversion fails.
-    
+
     function asserted_number(
         p in varchar2,
         p_message varchar2 default null
     ) return number;
-    
+
     function asserted_integer(
         p in varchar2,
         p_message varchar2 default null
     ) return pls_integer;
-    
+
     function asserted_date(
         p in varchar2,
         p_message varchar2 default null,
@@ -222,7 +223,7 @@ THE SOFTWARE.
     ) return clob;
 
     -- TODO clob_to_blob
-    
+
 end at_type;
 /
 create or replace package body at_type is
@@ -492,9 +493,9 @@ create or replace package body at_type is
         end loop;
         return l_tab10;
     end to_at_table10;
-    
+
     -- Conversion functions that raise assertion error if conversion fails.
-    
+
     function asserted_number(
         p in varchar2,
         p_message varchar2 default null
@@ -504,9 +505,18 @@ create or replace package body at_type is
         return to_number(p);
     exception
         when value_error then
-            at_exc.fail(p_message);
+            raise_application_error(
+                at_exc.c_assertion_error_code,
+                'Assertion error: ' ||
+                case
+                    when p_message is not null then
+                        p_message
+                    else 
+                        'number expected, got ''' || p || ''''
+                end
+            );
     end;
-    
+
     function asserted_integer(
         p in varchar2,
         p_message varchar2 default null
@@ -521,9 +531,18 @@ create or replace package body at_type is
         return l_int;
     exception
         when value_error then
-            at_exc.fail(p_message);
+            raise_application_error(
+                at_exc.c_assertion_error_code,
+                'Assertion error: ' ||
+                case
+                    when p_message is not null then
+                        p_message
+                    else 
+                        'integer expected, got ''' || p || ''''
+                end
+            );
     end;
-        
+
     function asserted_date(
         p in varchar2,
         p_message varchar2 default null,
@@ -534,9 +553,18 @@ create or replace package body at_type is
         return to_date(p, p_format);
     exception
         when others then
-            at_exc.fail(p_message);
+            raise_application_error(
+                at_exc.c_assertion_error_code,
+                'Assertion error: ' ||
+                case
+                    when p_message is not null then
+                        p_message
+                    else 
+                        'date expected, got ''' || p || ''''
+                end
+            );
     end;
-        
+
     function asserted_datetime(
         p in varchar2,
         p_message varchar2 default null,
@@ -547,7 +575,16 @@ create or replace package body at_type is
         return to_date(p, p_format);
     exception
         when others then
-            at_exc.fail(p_message);
+            raise_application_error(
+                at_exc.c_assertion_error_code,
+                'Assertion error: ' ||
+                case
+                    when p_message is not null then
+                        p_message
+                    else 
+                        'datetime expected, got ''' || p || ''''
+                end
+            );
     end;
 
     function asserted_timestamp(
@@ -560,9 +597,18 @@ create or replace package body at_type is
         return to_timestamp(p, p_format);
     exception
         when others then
-            at_exc.fail(p_message);
+            raise_application_error(
+                at_exc.c_assertion_error_code,
+                'Assertion error: ' ||
+                case
+                    when p_message is not null then
+                        p_message
+                    else 
+                        'timestamp expected, got ''' || p || ''''
+                end
+            );
     end;
-        
+
     function asserted_timestamp_tz(
         p in varchar2,
         p_message varchar2 default null,
@@ -573,7 +619,16 @@ create or replace package body at_type is
         return to_timestamp_tz(p, p_format);
     exception
         when others then
-            at_exc.fail(p_message);
+            raise_application_error(
+                at_exc.c_assertion_error_code,
+                'Assertion error: ' ||
+                case
+                    when p_message is not null then
+                        p_message
+                    else 
+                        'timestamp with time zone expected, got ''' || p || ''''
+                end
+            );
     end;
 
     function lvarchars_to_clob(
@@ -591,7 +646,7 @@ create or replace package body at_type is
         end loop;
         return l_clob;
     end lvarchars_to_clob;
-    
+
     function lvarchars_to_blob(
         p_content at_type.lvarchars
     ) return blob
@@ -615,7 +670,7 @@ create or replace package body at_type is
     function blob_to_clob(
         p_blob blob,
         p_charset varchar2 default at_env.c_charset
-    ) return clob 
+    ) return clob
     is
         l_clob         clob;
         l_dest_offsset integer := 1;
@@ -640,13 +695,13 @@ create or replace package body at_type is
             dest_offset  => l_dest_offsset,
             src_offset   => l_src_offsset,
             -- database csid by default or nls_charset_id('AL32UTF8')
-            -- blob_csid  => dbms_lob.default_csid, 
+            -- blob_csid  => dbms_lob.default_csid,
             blob_csid    => nls_charset_id(p_charset),
             lang_context => l_lang_context,
             warning      => l_warning
         );
         return l_clob;
     end blob_to_clob;
-   
+
 end at_type;
 /
