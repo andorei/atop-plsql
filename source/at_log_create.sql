@@ -6,7 +6,7 @@ create table at_log_ (
     addinfo  varchar2(4000),
     progname varchar2(50) not null,
     username varchar2(50) not null,
-    tag      varchar2(50),
+    tag      varchar2(4000),
     constraint at_log_kind_ck check (kind in ('i','d','w','e','p'))
 );
 
