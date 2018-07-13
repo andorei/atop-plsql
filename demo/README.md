@@ -19,9 +19,9 @@ For report on logins to work properly
 To install atop-plsql demo
 1. make `demo` the current directory,
 2. run sqlplus and connect to the user that owns atop-plsql utilities,
-3. run `@@install.sql`
+3. run `@install.sql`
 
 To uninstall atop-plsql demo
 1. make `demo` the current directory,
 2. run sqlplus and connect to the user that owns atop-plsql demo,
-3. run `@@uninstall.sql`
+3. run `@uninstall.sql`
