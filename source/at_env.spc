@@ -66,7 +66,7 @@ THE SOFTWARE.
     c_jour_jr_prefix constant varchar2(5) := '';
     c_jour_jr_suffix constant varchar2(5) := '_JR';
     c_jour_jr_col_prefix constant varchar2(5) := 'JR_';
-    c_jour_jr_owner constant varchar2(30) := user||'_JR';
+    c_jour_jr_owner constant varchar2(30) := user;
     c_jour_tab_owner constant varchar2(30) := user;
 
     -- at_ldap package default configuration

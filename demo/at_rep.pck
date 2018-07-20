@@ -35,8 +35,8 @@ THE SOFTWARE.
     -- Notify on errors in log.
     procedure send_logged_errors(p_task_name at_task_.task_name%type);
     
-    -- Notify on wierd logins to the database.
-    procedure send_wierd_logins(
+    -- Notify on weird logins to the database.
+    procedure send_weird_logins(
         p_task_name at_task_.task_name%type,
         p_since date default trunc(sysdate-1)
     );
@@ -98,8 +98,8 @@ create or replace package body at_rep is
         commit;
     end send_logged_errors;
 
-    -- Notify on wierd logins to the database.
-    procedure send_wierd_logins(
+    -- Notify on weird logins to the database.
+    procedure send_weird_logins(
         p_task_name at_task_.task_name%type,
         p_since date default trunc(sysdate-1)
     ) is
@@ -117,14 +117,14 @@ create or replace package body at_rep is
         ;
         at_mail.send_html_table(
             p_owner => p_task_name,
-            p_subject => 'Wierd logins since ' || to_char(p_since, 'yyyy-mm-dd hh24:mi:ss'),
+            p_subject => 'Weird logins since ' || to_char(p_since, 'yyyy-mm-dd hh24:mi:ss'),
             p_message => null,
             p_cursor => l_cursor,
             p_colnames => at_varchars('DB User','OS User','User Host','Date','Login Count'),
             p_status => at_env.c_status_on
         );
         close l_cursor;
-    end send_wierd_logins;
+    end send_weird_logins;
 
 end at_rep;
 /

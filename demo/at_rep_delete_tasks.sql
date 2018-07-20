@@ -20,13 +20,13 @@ end;
 
 begin
     at_task.delete_task(
-        p_task_name => 'R#SEND_WIERD_LOGINS'
+        p_task_name => 'R#SEND_WEIRD_LOGINS'
     );
     at_conf.delete_email(
-        p_owner => 'R#SEND_WIERD_LOGINS'
+        p_owner => 'R#SEND_WEIRD_LOGINS'
     );
     at_conf.delete_param(
-        p_owner => 'R#SEND_WIERD_LOGINS',
+        p_owner => 'R#SEND_WEIRD_LOGINS',
         p_name => 'userhosts_re'
     );
 end;

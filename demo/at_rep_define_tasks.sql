@@ -36,21 +36,21 @@ end;
 
 begin
     at_conf.set_param(
-        p_owner => 'R#SEND_WIERD_LOGINS',
+        p_owner => 'R#SEND_WEIRD_LOGINS',
         p_name => 'userhosts_re',
         p_param => '^(company.com|company.ru)',
         p_descr => 'Regular expression that defines allowed users'' hosts.'
     );
     at_conf.set_email(
-        p_owner => 'R#SEND_WIERD_LOGINS',
+        p_owner => 'R#SEND_WEIRD_LOGINS',
         p_to => 'at_env.c_email_admin',
         p_cc => null,
         p_bcc => null,
         p_descr => 'Notification on weird logins to DB.'
     );
     at_task.define_task(
-        p_task_name => 'R#SEND_WIERD_LOGINS', 
-        p_what => 'at_rep.send_wierd_logins(:1)', 
+        p_task_name => 'R#SEND_WEIRD_LOGINS', 
+        p_what => 'at_rep.send_weird_logins(:1)', 
         p_schedule => '10 08 .. .. .',
         p_status => 'on', 
         p_descr => 'Notification on weird logins to DB.'

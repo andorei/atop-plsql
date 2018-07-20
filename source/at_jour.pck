@@ -307,7 +307,7 @@ BEGIN
         rtrim( substr( s.program, 1, 30)),
         s.audsid
     INTO l_notes, l_app, l_sess
-    FROM sys.v_$session s
+    FROM v$session s
     WHERE s.audsid = userenv(''SESSIONID'');
 
     IF INSERTING THEN
