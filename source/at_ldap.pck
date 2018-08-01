@@ -85,7 +85,7 @@ THE SOFTWARE.
     set serveroutput on
     begin
         at_ldap.search_and_print(
-            p_base => 'OU=ќфис,OU=associates,DC=md,DC=int',
+            p_base => 'OU=organization,DC=company,DC=com',
             p_attrs => 'givenName, mail, homePhone',
             p_filter => 'objectClass=user'
         );
@@ -115,7 +115,7 @@ THE SOFTWARE.
         at_ldap.search_and_yield(
             p_attrs => 'givenName, mail, homePhone',
             p_filter => 'objectClass=user',
-            p_base => 'OU=ќперационный департамент,OU=ќфис,OU=Associates,DC=md,DC=int'
+            p_base => 'OU=organization,DC=company,DC=com'
         ))
     order by 1;
 
@@ -125,7 +125,7 @@ THE SOFTWARE.
             at_ldap.search_and_yield(
                 p_attrs => 'displayName, mail',
                 p_filter => 'objectClass=user',
-                p_base => 'OU=ќперационный департамент,OU=ќфис,OU=Associates,DC=md,DC=int'
+                p_base => 'OU=organization,DC=company,DC=com'
             ))
     )
     select q1.dn, q1.val displayName, q2.val mail

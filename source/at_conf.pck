@@ -127,9 +127,9 @@ create or replace package body at_conf is
         return p;
     end evaluated;
 
-    -- 'ivanov.ii@chainsupply.cn,,,,,env_pkg.email_boss,Support<support@anywhere.ru>,'
+    -- 'ivanov.ii@anywhere.com,,,,,at_env.c_email_admin,Support<support@anywhere.ru>,'
     -- gets converted to
-    -- 'ivanov.ii@chainsupply.cn,petrov.as@chainsupply.cn,Support<support@anywhere.ru>'
+    -- 'ivanov.ii@anywhere.com,admin@company.com,Support<support@anywhere.ru>'
     function evaluated_list(p varchar2, p_skip_re varchar2 default '@') return varchar2
     is
         l_array at_varchars;

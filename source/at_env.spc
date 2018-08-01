@@ -1,8 +1,7 @@
 create or replace package at_env is
 /*******************************************************************************
 Changelog
-  2017-12-27 Andrei Trofimov create package
-  2018-01-31 Andrei Trofimov add whitespace constant
+    2017-12-27 Andrei Trofimov create package
 
 ********************************************************************************
 Copyright (C) 2017-2018 by Andrei Trofimov
@@ -85,6 +84,7 @@ THE SOFTWARE.
     -- email configuration
     c_email_from  constant varchar2(255) := 'oradbms@company.com';
     c_email_test  constant varchar2(255) := 'developer@company.com';
+    c_email_admin constant varchar2(255) := 'admin@company.com';
     c_email_subj_prefix varchar2(20) := '{' || c_sysname || '}';
 
     c_email_text_greeting constant varchar2(4000) := 
