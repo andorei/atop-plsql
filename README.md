@@ -30,8 +30,15 @@ PL/SQL utilities that make it easier to develop routine solutions in Oracle DBMS
 To successfully install all schema objects and PL/SQL packages, Oracle user must be granted the following additional privileges (provided it already has `connect` and `resource` roles):
 
 ```
-grant create view, drop view to <user>;
-grant create job, drop job to <user>;
+grant create table to <user>;
+grant create view to <user>;
+grant create trigger to <user>;
+grant create job to <user>;
+
+grant execute on utl_file to <user>;
+grant execute on utl_tcp to <user>;
+grant execute on utl_smtp to <user>;
+
 grant select on sys.v_$database to <user>;
 grant select on sys.v_$session to <user>;
 ```
