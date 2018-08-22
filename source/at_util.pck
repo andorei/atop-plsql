@@ -274,7 +274,7 @@ create or replace package body at_util is
         dbms_scheduler.create_job(
             job_name => dbms_scheduler.generate_job_name,
             job_type => 'PLSQL_BLOCK',
-            job_action => 'begin '||rtrim(p_plsql, '; ')||'; end;',
+            job_action => 'begin '||rtrim(p_plsql, ';'||at_env.whitespace)||'; end;',
             enabled => TRUE
         );
     end run_job;
