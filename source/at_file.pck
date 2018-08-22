@@ -3,7 +3,8 @@ create or replace package at_file is
     File operations using UTL_FILE, DBMS_BLOB, etc.
 
 Changelog
-  2016-09-05 Andrei Trofimov create package
+    2016-09-05 Andrei Trofimov create package
+    2018-08-03 Andrei Trofimov add file_to_blob, clob_to_file, blob_to_file.
 
 ********************************************************************************
 Copyright (C) 2016-2018 by Andrei Trofimov
@@ -71,9 +72,26 @@ THE SOFTWARE.
         p_charset varchar2 default at_env.c_charset
     ) return clob;
 
-    -- TODO file_to_blob
-    -- TODO clob_to_file
-    -- TODO blob_to_file
+    -- Return CLOB loaded from specified file.
+    -- When no longer needed remember to free the CLOB with dbms_lob.freetemporary(l_blob).
+    function file_to_blob(
+        p_file_name varchar2,
+        p_dir varchar2 default at_env.c_in_dir
+    ) return blob;
+
+    -- Write clob to file.
+    procedure clob_to_file(
+        p_clob in clob,
+        p_file_name varchar2,
+        p_dir varchar2 default at_env.c_out_dir
+    );
+            
+    -- Write blob to file.
+    procedure blob_to_file(
+        p_blob in blob,
+        p_file_name varchar2,
+        p_dir varchar2 default at_env.c_out_dir
+    );
 
     -- Get table from the csv-file clob.
     -- select * from table(at_file.csv_table(<clob>));
@@ -258,6 +276,100 @@ create or replace package body at_file is
         return l_clob;
         --should be freed after using dbms_lob.freetemporary(l_clob);
     end file_to_clob;
+
+    -- Return BLOB loaded from specified file.
+    -- When no longer needed remember to free the CLOB with dbms_lob.freetemporary(l_blob).
+    function file_to_blob(
+        p_file_name varchar2,
+        p_dir varchar2 default at_env.c_in_dir
+    ) return blob
+    is
+        l_blob blob;
+        l_bfile bfile;
+        l_dest_offset number;
+        l_src_offset number;
+    begin
+        l_bfile := bfilename(p_dir, p_file_name);
+
+        dbms_lob.createtemporary(l_blob, true);
+        l_dest_offset := 1; -- from the begining
+        l_src_offset := 1;  -- from the begining
+
+        dbms_lob.fileopen(l_bfile);
+        dbms_lob.loadblobfromfile(
+            dest_lob    => l_blob,
+            src_bfile   => l_bfile,
+            amount      => dbms_lob.lobmaxsize,
+            dest_offset => l_dest_offset,
+            src_offset  => l_src_offset
+        );
+        dbms_lob.fileclose(l_bfile);
+
+        return l_blob;
+        --should be freed after using dbms_lob.freetemporary(l_clob);
+    end file_to_blob;
+
+    -- Write clob to file.
+    procedure clob_to_file(
+        p_clob in clob,
+        p_file_name varchar2,
+        p_dir varchar2 default at_env.c_out_dir
+    ) is
+        l_clob_len pls_integer;
+        l_file     utl_file.file_type;
+        l_buffer   varchar2(32767);
+        l_amount   pls_integer;
+        l_pos      binary_integer := 1;
+    begin
+        l_clob_len := dbms_lob.getlength(p_clob);
+        l_amount := least(dbms_lob.getchunksize(p_clob), floor(32767 / 4) /*utf-8*/);
+
+        l_file := utl_file.fopen(p_dir, p_file_name, 'wb', 32767);
+
+        while l_pos < l_clob_len loop
+            dbms_lob.read(p_clob, l_amount, l_pos, l_buffer);
+            utl_file.put_raw(l_file, utl_raw.cast_to_raw(l_buffer), true);
+            l_pos := l_pos + l_amount;
+        end loop;
+
+        utl_file.fclose(l_file);
+    exception
+        when others then
+            if utl_file.is_open(l_file) then
+                utl_file.fclose(l_file);
+            end if;
+            raise;
+    end clob_to_file;
+            
+    -- Write blob to file.
+    procedure blob_to_file(
+        p_blob in blob,
+        p_file_name varchar2,
+        p_dir varchar2 default at_env.c_out_dir
+    ) is
+        l_blob_len pls_integer;
+        l_file     utl_file.file_type;
+        l_buffer   varchar2(32767);
+        l_amount   pls_integer := 32767;
+        l_pos      binary_integer := 1;
+    begin
+        l_blob_len := dbms_lob.getlength(p_blob);
+        l_file := utl_file.fopen(p_dir, p_file_name, 'wb', 32767);
+
+        while l_pos < l_blob_len loop
+            dbms_lob.read(p_blob, l_amount, l_pos, l_buffer);
+            utl_file.put_raw(l_file, l_buffer, true);
+            l_pos := l_pos + l_amount;
+        end loop;
+
+        utl_file.fclose(l_file);
+    exception
+        when others then
+            if utl_file.is_open(l_file) then
+                utl_file.fclose(l_file);
+            end if;
+            raise;
+    end blob_to_file;
 
     -- Get table from the csv-file clob.
     -- select * from table(at_file.csv_table(<clob>));
@@ -650,7 +762,7 @@ create or replace package body at_file is
         l_line_complete boolean := false;
         l_new_token boolean := true;
         l_enclosed boolean := false;
-        l_lineno pls_integer := 1;
+        l_lineno pls_integer := 0;
         l_columnno pls_integer := 1;
         l_len pls_integer;
         l_id varchar2(32) := sys_guid();
@@ -731,6 +843,7 @@ create or replace package body at_file is
                     l_cols(l_columnno) := null;
                     l_columnno := l_columnno + 1;
                 end loop;
+                l_lineno := l_lineno + 1;
                 insert into at_file_ (
                     id,
                     line,
@@ -764,7 +877,6 @@ create or replace package body at_file is
                     l_cols(81), l_cols(82), l_cols(83), l_cols(84), l_cols(85), l_cols(86), l_cols(87), l_cols(88), l_cols(89), l_cols(90),
                     l_cols(91), l_cols(92), l_cols(93), l_cols(94), l_cols(95), l_cols(96), l_cols(97), l_cols(98), l_cols(99), l_cols(100)
                 );
-                l_lineno := l_lineno + 1;
                 l_columnno := 1;
                 l_line_complete := false;
                 l_cols.delete;
