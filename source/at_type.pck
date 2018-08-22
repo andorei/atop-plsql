@@ -6,6 +6,7 @@ Changelog
     2017-12-27 Andrei Trofimov create package.
     2018-02-08 Andrei Trofimov add named_varchars type.
     2018-06-22 Andrei Trofimov raise_application_error in assetred_% procedures.
+    2018-08-20 Andrei Trofimov add clob_to_blob.
 
 ********************************************************************************
 Copyright (C) 2017-2018 by Andrei Trofimov
@@ -222,7 +223,12 @@ THE SOFTWARE.
         p_charset varchar2 default at_env.c_charset
     ) return clob;
 
-    -- TODO clob_to_blob
+    -- Return BLOB created from the p_ñlob ÑLOB.
+    -- When no longer needed remember to free the CLOB with dbms_lob.freetemporary(l_blob).
+    function clob_to_blob(
+        p_clob clob,
+        p_charset varchar2 default at_env.c_charset
+    ) return blob;
 
 end at_type;
 /
@@ -511,7 +517,7 @@ create or replace package body at_type is
                 case
                     when p_message is not null then
                         p_message
-                    else 
+                    else
                         'number expected, got ''' || p || ''''
                 end
             );
@@ -537,7 +543,7 @@ create or replace package body at_type is
                 case
                     when p_message is not null then
                         p_message
-                    else 
+                    else
                         'integer expected, got ''' || p || ''''
                 end
             );
@@ -559,7 +565,7 @@ create or replace package body at_type is
                 case
                     when p_message is not null then
                         p_message
-                    else 
+                    else
                         'date expected, got ''' || p || ''''
                 end
             );
@@ -581,7 +587,7 @@ create or replace package body at_type is
                 case
                     when p_message is not null then
                         p_message
-                    else 
+                    else
                         'datetime expected, got ''' || p || ''''
                 end
             );
@@ -603,7 +609,7 @@ create or replace package body at_type is
                 case
                     when p_message is not null then
                         p_message
-                    else 
+                    else
                         'timestamp expected, got ''' || p || ''''
                 end
             );
@@ -625,7 +631,7 @@ create or replace package body at_type is
                 case
                     when p_message is not null then
                         p_message
-                    else 
+                    else
                         'timestamp with time zone expected, got ''' || p || ''''
                 end
             );
@@ -702,6 +708,44 @@ create or replace package body at_type is
         );
         return l_clob;
     end blob_to_clob;
+
+    -- Return BLOB created from the p_ñlob ÑLOB.
+    -- When no longer needed remember to free the CLOB with dbms_lob.freetemporary(l_blob).
+    function clob_to_blob(
+        p_clob clob,
+        p_charset varchar2 default at_env.c_charset
+    ) return blob
+    is
+        l_blob         blob;
+        l_dest_offsset integer := 1;
+        l_src_offsset  integer := 1;
+        l_lang_context integer := dbms_lob.default_lang_ctx;
+        l_warning      integer;
+    begin
+        if p_clob is null then
+            return null;
+        end if;
+        if dbms_lob.getlength(p_clob) = 0 then
+            return empty_blob;
+        end if;
+        dbms_lob.createTemporary(
+            lob_loc => l_blob,
+            cache   => false
+        );
+        dbms_lob.converttoblob(
+            dest_lob     => l_blob,
+            src_clob     => p_clob,
+            amount       => dbms_lob.lobmaxsize,
+            dest_offset  => l_dest_offsset,
+            src_offset   => l_src_offsset,
+            -- database csid by default or nls_charset_id('AL32UTF8')
+            -- blob_csid  => dbms_lob.default_csid,
+            blob_csid    => nls_charset_id(p_charset),
+            lang_context => l_lang_context,
+            warning      => l_warning
+        );
+        return l_blob;
+    end clob_to_blob;
 
 end at_type;
 /
