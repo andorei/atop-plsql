@@ -1,5 +1,8 @@
 -- Tables of basic types.
 
+create or replace type at_names is table of varchar2(30)
+/
+
 create or replace type at_varchars is table of varchar2(4000)
 /
 

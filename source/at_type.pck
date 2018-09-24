@@ -35,6 +35,7 @@ THE SOFTWARE.
     -- Associative array types.
     type lvarchars is table of varchar2(32767) index by pls_integer;
     type varchars is table of varchar2(4000) index by pls_integer;
+    type names is table of varchar2(30) index by pls_integer;
     type numbers is table of number index by pls_integer;
     type dates is table of date index by pls_integer;
     type named_varchars is table of varchar2(4000) index by varchar2(30);
@@ -42,11 +43,13 @@ THE SOFTWARE.
     -- Empty associative arrays.
     g_empty_lvarchars at_type.lvarchars;
     g_empty_varchars at_type.varchars;
+    g_empty_names at_type.names;
     g_empty_numbers at_type.numbers;
     g_empty_dates at_type.dates;
     g_empty_named_varchars at_type.named_varchars;
 
     -- Conversion from assosiative array to SQL nested table.
+    function to_at_names(p in at_type.names) return at_names;
     function to_at_varchars(p in at_type.varchars) return at_varchars;
     function to_at_numbers(p in at_type.numbers) return at_numbers;
     function to_at_dates(p in at_type.dates) return at_dates;
@@ -235,6 +238,20 @@ end at_type;
 create or replace package body at_type is
 
     -- Conversion from PL/SQL index-by-table to SQL nested-table.
+
+    function to_at_names(p in at_type.names) return at_names
+    is
+        i pls_integer;
+        l_result at_names := at_names();
+    begin
+        i := p.first;
+        while i is not null loop
+            l_result.extend;
+            l_result(l_result.last) := p(i);
+            i := p.next(i);
+        end loop;
+        return l_result;
+    end to_at_names;
 
     function to_at_varchars(p in at_type.varchars) return at_varchars
     is
