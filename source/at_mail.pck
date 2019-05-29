@@ -461,7 +461,7 @@ create or replace package body at_mail is
         );
 
         if l_data.count > 0 then
-            l_data(0) := p_message;
+            l_data(0) := regexp_replace(p_message, '\{\{\s*rowcount\s*\}\}', l_data.count-2/*omit 1st and last lines*/);
             send_html(
                 p_to    => p_to,
                 p_cc    => p_cc,
