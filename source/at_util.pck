@@ -5,9 +5,10 @@ create or replace package at_util is
 Changelog
     2017-12-27 Andrei Trofimov create package.
     2018-01-31 Andrei Trofimov add to_nls_lang and to_russian_1251.
+    2019-08-05 Andrei Trofimov overload joined for dates and numbers
 
 ********************************************************************************
-Copyright (C) 2017-2018 by Andrei Trofimov
+Copyright (C) 2017-2019 by Andrei Trofimov
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -40,7 +41,35 @@ THE SOFTWARE.
     ) return varchar2;
 
     function joined(
+        p_parts in at_dates,
+        p_con in varchar2,
+        p_start_with varchar2 default null,
+        p_end_with varchar2 default null
+    ) return varchar2;
+
+    function joined(
+        p_parts in at_numbers,
+        p_con in varchar2,
+        p_start_with varchar2 default null,
+        p_end_with varchar2 default null
+    ) return varchar2;
+
+    function joined(
         p_parts in at_type.varchars,
+        p_con in varchar2,
+        p_start_with varchar2 default null,
+        p_end_with varchar2 default null
+    ) return varchar2;
+
+    function joined(
+        p_parts in at_type.dates,
+        p_con in varchar2,
+        p_start_with varchar2 default null,
+        p_end_with varchar2 default null
+    ) return varchar2;
+
+    function joined(
+        p_parts in at_type.numbers,
         p_con in varchar2,
         p_start_with varchar2 default null,
         p_end_with varchar2 default null
@@ -130,7 +159,123 @@ create or replace package body at_util is
     end joined;
 
     function joined(
+        p_parts in at_dates,
+        p_con in varchar2,
+        p_start_with varchar2 default null,
+        p_end_with varchar2 default null
+    ) return varchar2
+    is
+        i pls_integer;
+        l_line varchar2(32767) := '';
+    begin
+        if p_parts is null or p_con is null then
+            return null;
+        end if;
+
+        i := p_parts.first;
+        while i is not null loop
+            l_line := l_line || p_con || to_char(p_parts(i), at_env.c_date_format);
+            i := p_parts.next(i);
+        end loop;
+
+        return
+            case
+            when l_line is not null then
+                p_start_with || substr(l_line, length(p_con) + 1) || p_end_with
+            else
+                l_line
+            end;
+    end joined;
+
+    function joined(
+        p_parts in at_numbers,
+        p_con in varchar2,
+        p_start_with varchar2 default null,
+        p_end_with varchar2 default null
+    ) return varchar2
+    is
+        i pls_integer;
+        l_line varchar2(32767) := '';
+    begin
+        if p_parts is null or p_con is null then
+            return null;
+        end if;
+
+        i := p_parts.first;
+        while i is not null loop
+            l_line := l_line || p_con || p_parts(i);
+            i := p_parts.next(i);
+        end loop;
+
+        return
+            case
+            when l_line is not null then
+                p_start_with || substr(l_line, length(p_con) + 1) || p_end_with
+            else
+                l_line
+            end;
+    end joined;
+
+    function joined(
         p_parts in at_type.varchars,
+        p_con in varchar2,
+        p_start_with varchar2 default null,
+        p_end_with varchar2 default null
+    ) return varchar2
+    is
+        i pls_integer;
+        l_line varchar2(32767) := '';
+    begin
+        if p_parts is null or p_con is null then
+            return null;
+        end if;
+
+        i := p_parts.first;
+        while i is not null loop
+            l_line := l_line || p_con || p_parts(i);
+            i := p_parts.next(i);
+        end loop;
+
+        return
+            case
+            when l_line is not null then
+                p_start_with || substr(l_line, length(p_con) + 1) || p_end_with
+            else
+                l_line
+            end;
+    end joined;
+
+    function joined(
+        p_parts in at_type.dates,
+        p_con in varchar2,
+        p_start_with varchar2 default null,
+        p_end_with varchar2 default null
+    ) return varchar2
+    is
+        i pls_integer;
+        l_line varchar2(32767) := '';
+    begin
+        if p_parts is null or p_con is null then
+            return null;
+        end if;
+
+        i := p_parts.first;
+        while i is not null loop
+            l_line := l_line || p_con || to_char(p_parts(i), at_env.c_date_format);
+            i := p_parts.next(i);
+        end loop;
+
+        return
+            case
+            when l_line is not null then
+                p_start_with || substr(l_line, length(p_con) + 1) || p_end_with
+            else
+                l_line
+            end;
+    end joined;
+
+    function joined(
+        p_parts in at_type.numbers,
         p_con in varchar2,
         p_start_with varchar2 default null,
         p_end_with varchar2 default null
