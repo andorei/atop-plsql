@@ -267,7 +267,15 @@ create or replace package body at_mail is
             p_from => p_from,
             p_to   => case p_status when at_env.c_status_test then at_env.c_email_test else p_to end,
             p_cc   => case p_status when at_env.c_status_test then '' else p_cc end,
-            p_bcc  => case p_status when at_env.c_status_test then '' else p_bcc end,
+            p_bcc  => 
+                case p_status
+                    when at_env.c_status_test then
+                        ''
+                    when at_env.c_status_eyed then
+                        ltrim(p_bcc || ',' || at_env.c_email_admin, ',')
+                    else
+                        p_bcc
+                end,
             p_subject  => at_env.c_email_subj_prefix || ' ' || p_subject,
             p_message  => p_message,
             p_mime_type => 'text/html',
@@ -372,7 +380,15 @@ create or replace package body at_mail is
             p_from => p_from,
             p_to   => case p_status when at_env.c_status_test then at_env.c_email_test else p_to end,
             p_cc   => case p_status when at_env.c_status_test then '' else p_cc end,
-            p_bcc  => case p_status when at_env.c_status_test then '' else p_bcc end,
+            p_bcc  => 
+                case p_status
+                    when at_env.c_status_test then
+                        ''
+                    when at_env.c_status_eyed then
+                        ltrim(p_bcc || ',' || at_env.c_email_admin, ',')
+                    else
+                        p_bcc
+                end,
             p_subject  => at_env.c_email_subj_prefix || ' ' || p_subject,
             p_message  => p_message,
             p_mime_type => 'text/plain',

@@ -41,6 +41,9 @@ THE SOFTWARE.
         p_since date default trunc(sysdate-1)
     );
 
+    -- Stop jobs that run too long.
+    procedure stop_weird_jobs(p_task_name at_task_.task_name%type);
+    
 end at_rep;
 /
 create or replace package body at_rep is
@@ -125,6 +128,30 @@ create or replace package body at_rep is
         );
         close l_cursor;
     end send_weird_logins;
+
+    -- Stop jobs that run too long.
+    procedure stop_weird_jobs(p_task_name at_task_.task_name%type)
+    is
+        l_job_run_limit interval day to second := to_dsinterval(at_conf.param(p_task_name, 'job_run_limit'));
+        l_longrun_jobs_re varchar2(4000) := at_conf.param(p_task_name, 'longrun_jobs_re');
+    begin
+        for r in (
+            -- create job with LONGRUN in the name to prevent it from being killed
+            select job_name, elapsed_time
+            from dba_scheduler_running_jobs j
+            where elapsed_time > l_job_run_limit
+                and owner = user
+                and not regexp_like(job_name, l_longrun_jobs_re)
+        ) loop
+            begin
+                sys.dbms_scheduler.stop_job(r.job_name, force => true);
+                at_log.error($$PLSQL_UNIT, 'Stopped job '||r.job_name||' running for '||r.elapsed_time);
+            exception
+                when others then
+                    at_log.error($$PLSQL_UNIT, 'Failed to stop job '||r.job_name||' running for '||r.elapsed_time);
+            end;
+        end loop;
+    end stop_weird_jobs;
 
 end at_rep;
 /

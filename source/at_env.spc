@@ -46,6 +46,7 @@ THE SOFTWARE.
     c_status_on   constant varchar2(5) := 'on';
     c_status_off  constant varchar2(5) := 'off';
     c_status_test constant varchar2(5) := 'test';
+    c_status_eyed constant varchar2(5) := 'eyed';
 
     -- System name.
     c_sysname constant varchar2(50) := 

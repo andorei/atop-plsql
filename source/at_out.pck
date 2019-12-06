@@ -794,7 +794,7 @@ create or replace package body at_out is
                     end loop;
                     l_line := rtrim(l_line, ',') || '},';
                 else
-                    l_line := at_util.joined(c, ';', '', ';');
+                    l_line := at_util.joined(c, ';', '', ''); --';');
             end case;
         end loop;
 

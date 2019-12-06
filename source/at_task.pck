@@ -1,7 +1,7 @@
 create or replace package at_task is
 /*******************************************************************************
     Task scheduling and running API
-    
+
 Changelog
     2016-08-17 Andrei Trofimov create package
     2017-08-07 Andrei Trofimov add schedule start and stop timestamps
@@ -33,7 +33,8 @@ THE SOFTWARE.
     c_task_status_on constant at_task_.status%type := 'on';
     c_task_status_off constant at_task_.status%type := 'off';
     c_task_status_test constant at_task_.status%type := 'test';
-    
+    c_task_status_eyed constant at_task_.status%type := 'eyed';
+
     procedure define_task(
         p_task_name     at_task_.task_name%type,
         p_what          at_task_.what%type,
@@ -43,11 +44,12 @@ THE SOFTWARE.
         p_start         at_task_.schedule_start%type default null,
         p_stop          at_task_.schedule_stop%type default null
     );
-    
+
     -- Change task status.
     procedure set_task_off(p_task_name at_task_.task_name%type);
     procedure set_task_on(p_task_name at_task_.task_name%type);
     procedure set_task_test(p_task_name at_task_.task_name%type);
+    procedure set_task_eyed(p_task_name at_task_.task_name%type);
 
     procedure delete_task(p_task_name at_task_.task_name%type);
 
@@ -105,12 +107,18 @@ create or replace package body at_task is
     begin
         set_task_status(p_task_name, c_task_status_on);
     end set_task_on;
-    
+
     procedure set_task_test(p_task_name at_task_.task_name%type)
     is
     begin
         set_task_status(p_task_name, c_task_status_test);
     end set_task_test;
+
+    procedure set_task_eyed(p_task_name at_task_.task_name%type)
+    is
+    begin
+        set_task_status(p_task_name, c_task_status_eyed);
+    end set_task_eyed;
 
     procedure delete_task(p_task_name at_task_.task_name%type)
     is
@@ -129,7 +137,7 @@ create or replace package body at_task is
         for r in (
             select task_name, what, status
             from at_task_
-            where regexp_like(now, schedule) 
+            where regexp_like(now, schedule)
                 and status != c_task_status_off
                 and systimestamp >= nvl(schedule_start, sysdate - 1)
                 and systimestamp < nvl(schedule_stop, sysdate + 1)
@@ -146,7 +154,7 @@ create or replace package body at_task is
                 enabled => TRUE
             );
             -- remember the job name and start time
-            update at_task_ 
+            update at_task_
             set last_when = systimestamp,
                 last_job = l_job_name
             where task_name = r.task_name
@@ -182,7 +190,7 @@ create or replace package body at_task is
                 enabled => TRUE
             );
             -- remember the job name and start time
-            update at_task_ 
+            update at_task_
             set last_when = systimestamp,
                 last_job = l_job_name
             where task_name = r.task_name

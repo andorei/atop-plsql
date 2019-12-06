@@ -8,7 +8,7 @@ create table at_task_ (
     schedule_stop  timestamp with time zone,
     last_when  timestamp,
     last_job   varchar2(30),
-    constraint at_task_ check (status in ('on', 'off', 'test'))
+    constraint at_task_ck check (status in ('on', 'off', 'test', 'eyed'))
 );
 
 comment on table at_task_ is 'Task definitions';
