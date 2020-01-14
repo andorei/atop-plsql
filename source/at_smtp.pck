@@ -47,7 +47,7 @@ THE SOFTWARE.
         p_user varchar2 default null,
         p_pswd varchar2 default null
     );
-    
+
     -- Reset the email being prepared.
     procedure reset;
 
@@ -58,15 +58,15 @@ THE SOFTWARE.
         p_mime_type in varchar2 default 'text/plain',
         p_name      in varchar2 default null
     );
-        
+
     -- Attach blob to the email being prepared.
     procedure attach(
         p_content   in blob,
         p_file_name in varchar2,
         p_mime_type in varchar2 default 'application/zip',
         p_name      in varchar2 default null
-    );    
-    
+    );
+
     -- Attach external file to the email being prepared.
     procedure attach(
         p_dir       in varchar2,
@@ -74,7 +74,7 @@ THE SOFTWARE.
         p_mime_type in varchar2 default 'text/plain',
         p_name      in varchar2 default null
     );
-    
+
     -- Send prepared message.
     procedure send(
         p_from     in varchar2,
@@ -138,7 +138,7 @@ create or replace package body at_smtp is
 
     type rcpt_row is record (
         rcptname varchar2(100),
-        rcptmail varchar2(50)
+        rcptmail varchar2(400)
     );
     type rcpt_list is table of rcpt_row;
 
@@ -161,9 +161,9 @@ create or replace package body at_smtp is
     end set_smtp_auth;
 
     function encode(
-        p_data in varchar2, 
+        p_data in varchar2,
         p_type in varchar2 default 'B'
-    ) return varchar2 
+    ) return varchar2
     is
     begin
         if p_type = 'B' then
@@ -173,7 +173,7 @@ create or replace package body at_smtp is
                 '?=' ||
                 case when substr(p_data, 25) is not null then c_crlf || ' ' || encode(substr(p_data, 25), p_type) end;
         elsif p_type = 'Q' then
-            -- если имя адресата по-русски длиной 32 символа, то проблемы; использую BASE64
+            -- пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ32 пїЅпїЅ, пїЅпїЅпїЅ; пїЅпїЅпїЅ BASE64
             return
                 '=?utf-8?q?' ||
                 utl_raw.cast_to_varchar2(utl_encode.quoted_printable_encode(utl_raw.cast_to_raw(convert(substr(p_data, 1, 8), 'UTF8')))) ||
@@ -238,7 +238,7 @@ create or replace package body at_smtp is
         g_attached_blobs(g_attached_blobs.count).content  := p_content;
         g_attached_blobs(g_attached_blobs.count).filename := p_file_name;
         g_attached_blobs(g_attached_blobs.count).name     := nvl(p_name, p_file_name);
-        g_attached_blobs(g_attached_blobs.count).mimetype := p_mime_type;             
+        g_attached_blobs(g_attached_blobs.count).mimetype := p_mime_type;
     end attach;
 
     function create_rcpt_list(p_list in varchar2) return rcpt_list
@@ -345,7 +345,7 @@ create or replace package body at_smtp is
             end loop;
             utl_smtp.write_data(p_conn, c_crlf);
         end write_recipients;
-        
+
         procedure write_attachment_header(
             p_conn in out utl_smtp.connection,
             p_mime_type varchar2,
@@ -364,15 +364,15 @@ create or replace package body at_smtp is
     begin
         at_exc.assert(p_mime_type in ('text/html', 'text/plain'), 'Mime type must be "text/html" or "text/plain".');
         l_mime := p_mime_type;
-        
+
         l_to_list := create_rcpt_list(p_to);
         at_exc.assert(l_to_list.count > 0, 'Recipients required.');
         l_cc_list := create_rcpt_list(p_cc);
         l_bcc_list := create_rcpt_list(p_bcc);
-        
+
         l_conn := utl_smtp.open_connection(g_smtp_server, g_smtp_port);
         l_replies := utl_smtp.ehlo(l_conn, g_smtp_server);
-    
+
         if g_smtp_user is not null then
             for x in 1 .. l_replies.count loop
                 dbms_output.put_line(l_replies(x).text);
@@ -390,10 +390,10 @@ create or replace package body at_smtp is
                 end if;
             end loop;
         end if;
-    
+
         l_from := create_rcpt_list(p_from)(1);
         utl_smtp.mail(l_conn, l_from.rcptmail);
-        
+
         -- set addressees
         for i in 1 .. l_to_list.count loop
             utl_smtp.rcpt(l_conn, l_to_list(i).rcptmail);
@@ -404,9 +404,9 @@ create or replace package body at_smtp is
         for i in 1 .. l_bcc_list.count loop
             utl_smtp.rcpt(l_conn, l_bcc_list(i).rcptmail);
         end loop;
-    
+
         utl_smtp.open_data(l_conn);
-    
+
         -- write headers
         utl_smtp.write_data(l_conn, 'Date: ' || to_char(sys_extract_utc(systimestamp), 'Dy, DD Mon YYYY hh24:mi:ss', 'NLS_DATE_LANGUAGE = ''american''') || c_crlf);
         utl_smtp.write_data(l_conn, 'From: ');
@@ -426,12 +426,12 @@ create or replace package body at_smtp is
         utl_smtp.write_data(l_conn, 'Content-Type: multipart/mixed;' || c_crlf);
         utl_smtp.write_data(l_conn, ' boundary="' || c_boundary || '"' || c_crlf);
         utl_smtp.write_data(l_conn, c_crlf);
-    
+
         utl_smtp.write_data(l_conn, '--' || c_boundary || c_crlf);
         utl_smtp.write_data(l_conn, 'Content-Type: ' || l_mime || '; charset=utf-8' || c_crlf);
         utl_smtp.write_data(l_conn, 'Content-Transfer-Encoding: base64' || c_crlf);
         utl_smtp.write_data(l_conn, c_crlf);
-        
+
         -- write message body
         declare
             l_message blob;
@@ -443,13 +443,13 @@ create or replace package body at_smtp is
             -- make it UTF8 and convert to blob
             dbms_lob.createtemporary(l_message, true);
             dbms_lob.converttoblob(
-                dest_lob    => l_message, 
-                src_clob    => convert(p_message, 'UTF8'), 
-                amount      => dbms_lob.lobmaxsize, 
-                dest_offset => l_dest_offset, 
-                src_offset  => l_src_offset, 
-                blob_csid   => 0, 
-                lang_context => l_lang_ctx, 
+                dest_lob    => l_message,
+                src_clob    => convert(p_message, 'UTF8'),
+                amount      => dbms_lob.lobmaxsize,
+                dest_offset => l_dest_offset,
+                src_offset  => l_src_offset,
+                blob_csid   => 0,
+                lang_context => l_lang_ctx,
                 warning     => l_warning
             );
             -- make it base64
@@ -460,8 +460,8 @@ create or replace package body at_smtp is
                     dbms_lob.read(l_message, l_amt, l_pos, l_raw);
                     l_pos := l_pos + l_amt;
                     utl_smtp.write_raw_data(l_conn, utl_encode.base64_encode(l_raw));
-                exception 
-                when no_data_found then 
+                exception
+                when no_data_found then
                     exit;
                 end;
             end loop;
@@ -474,14 +474,14 @@ create or replace package body at_smtp is
         if g_attached_arrays is not null then
             for i in 1 .. g_attached_arrays.count loop
                 attach(
-                    at_type.lvarchars_to_blob(g_attached_arrays(i).content), 
-                    g_attached_arrays(i).filename, 
-                    g_attached_arrays(i).mimetype, 
+                    at_type.lvarchars_to_blob(g_attached_arrays(i).content),
+                    g_attached_arrays(i).filename,
+                    g_attached_arrays(i).mimetype,
                     g_attached_arrays(i).name
                 );
             end loop;
         end if;
-        
+
         -- external file attachments
         if g_attached_files is not null then
             for i in 1 .. g_attached_files.count loop
@@ -511,7 +511,7 @@ create or replace package body at_smtp is
         -- blob attachments
         if g_attached_blobs is not null then
             for i in 1 .. g_attached_blobs.count loop
-                
+
                 write_attachment_header(l_conn, g_attached_blobs(i).mimetype, g_attached_blobs(i).name);
                 -- make it base64
                 l_pos := 1;
@@ -521,22 +521,22 @@ create or replace package body at_smtp is
                         dbms_lob.read(g_attached_blobs(i).content, l_amt, l_pos, l_raw);
                         l_pos := l_pos + l_amt;
                         utl_smtp.write_raw_data(l_conn, utl_encode.base64_encode(l_raw));
-                    exception 
-                    when no_data_found then 
+                    exception
+                    when no_data_found then
                         exit;
                     end;
                 end loop;
                 utl_smtp.write_data(l_conn, c_crlf || c_crlf);
-                
+
             end loop;
         end if;
 
         -- final boundary
         utl_smtp.write_data(l_conn, '--' || c_boundary || '--');
-    
+
         utl_smtp.close_data(l_conn);
         utl_smtp.quit(l_conn);
-    
+
         -- clear attachments
         reset;
     exception

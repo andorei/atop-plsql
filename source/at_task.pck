@@ -151,7 +151,8 @@ create or replace package body at_task is
                 job_name => l_job_name,
                 job_type => 'PLSQL_BLOCK',
                 job_action => 'begin '||rtrim(l_plsql, ';'||at_env.whitespace)||'; end;',
-                enabled => TRUE
+                enabled => TRUE,
+                comments => r.task_name
             );
             -- remember the job name and start time
             update at_task_
@@ -187,7 +188,8 @@ create or replace package body at_task is
                 job_name => l_job_name,
                 job_type => 'PLSQL_BLOCK',
                 job_action => 'begin '||rtrim(l_plsql, ';'||at_env.whitespace)||'; end;',
-                enabled => TRUE
+                enabled => TRUE,
+                comments => r.task_name
             );
             -- remember the job name and start time
             update at_task_

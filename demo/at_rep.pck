@@ -137,18 +137,21 @@ create or replace package body at_rep is
     begin
         for r in (
             -- create job with LONGRUN in the name to prevent it from being killed
-            select job_name, elapsed_time
-            from dba_scheduler_running_jobs j
-            where elapsed_time > l_job_run_limit
-                and owner = user
-                and not regexp_like(job_name, l_longrun_jobs_re)
+            select r.job_name, j.comments, r.elapsed_time
+            from dba_scheduler_running_jobs r, dba_scheduler_jobs j
+            where r.elapsed_time > l_job_run_limit
+                and r.owner = user
+                and r.owner = j.owner
+                and r.job_name = j.job_name
+                and not regexp_like(r.job_name, l_longrun_jobs_re)
+                and not regexp_like(j.comments, l_longrun_jobs_re)
         ) loop
             begin
                 sys.dbms_scheduler.stop_job(r.job_name, force => true);
-                at_log.error($$PLSQL_UNIT, 'Stopped job '||r.job_name||' running for '||r.elapsed_time);
+                at_log.error($$PLSQL_UNIT, 'Stopped job '||r.job_name||' (' || r.comments ||') running for '||r.elapsed_time);
             exception
                 when others then
-                    at_log.error($$PLSQL_UNIT, 'Failed to stop job '||r.job_name||' running for '||r.elapsed_time);
+                    at_log.error($$PLSQL_UNIT, 'Failed to stop job '||r.job_name||' (' || r.comments ||') running for '||r.elapsed_time);
             end;
         end loop;
     end stop_weird_jobs;
