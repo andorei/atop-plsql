@@ -349,7 +349,7 @@ create or replace package body at_file is
     ) is
         l_blob_len pls_integer;
         l_file     utl_file.file_type;
-        l_buffer   varchar2(32767);
+        l_buffer   raw(32767);
         l_amount   pls_integer := 32767;
         l_pos      binary_integer := 1;
     begin
