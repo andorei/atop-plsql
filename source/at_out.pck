@@ -794,7 +794,7 @@ create or replace package body at_out is
                     end loop;
                     l_line := rtrim(l_line, ',') || '},';
                 else
-                    l_line := at_util.joined(c, ';', '', ''); --';');
+                    l_line := at_util.joined(c, ';', '', ';');
             end case;
         end loop;
 
@@ -1548,7 +1548,7 @@ create or replace package body at_out is
                         );
                     else
                         as_xlsx.cell(
-                            i, l_row_count, c(i),
+                            i, l_row_count, nvl(c(i), ''), -- PL/SQL empty line is important
                             p_alignment => as_xlsx.get_alignment(p_horizontal => 'left', p_vertical => 'middle', p_wraptext => false),
                             p_borderId => as_xlsx.get_border('thin', 'thin', 'thin', 'thin')
                         );
