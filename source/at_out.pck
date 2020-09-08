@@ -1072,6 +1072,11 @@ create or replace package body at_out is
 
         c at_type.varchars;
         l_row_count pls_integer := p_skip_rows;
+        
+        c_align_right as_xlsx.tp_alignment := as_xlsx.get_alignment(p_horizontal => 'right', p_vertical => 'middle', p_wraptext => false);
+        c_align_center as_xlsx.tp_alignment := as_xlsx.get_alignment(p_horizontal => 'center', p_vertical => 'middle', p_wraptext => false);
+        c_align_left as_xlsx.tp_alignment := as_xlsx.get_alignment(p_horizontal => 'left', p_vertical => 'middle', p_wraptext => false);
+        c_border pls_integer := as_xlsx.get_border('thin', 'thin', 'thin', 'thin');
     begin
         -- Get column types and column names if needed.
         l_dsql_cursor := dbms_sql.to_cursor_number(p_cursor);
@@ -1100,6 +1105,28 @@ create or replace package body at_out is
             as_xlsx.new_sheet;
         end if;
         
+        if p_header then
+            -- Make title row.
+            l_row_count := l_row_count + 1;
+            as_xlsx.set_row(
+                l_row_count,
+                p_fontId => as_xlsx.get_font('Calibri', p_bold => true)
+            ); 
+            for i in 1 .. l_colnames.count loop
+                as_xlsx.cell(
+                    i, l_row_count, l_colnames(i),
+                    p_borderId => c_border, --as_xlsx.get_border('thin', 'thin', 'thin', 'thin'),
+                    p_alignment => /*c_align_center*/ as_xlsx.get_alignment(p_horizontal => 'center', p_vertical => 'center', p_wraptext => true)
+                );
+            end loop;
+            if p_colwidths.count > 0 then
+                -- Set column widths.
+                for i in 1 .. p_colwidths.count loop
+                    as_xlsx.set_column_width(p_col => i, p_width => as_xlsx.width_pix_to_characters(p_colwidths(i)));
+                end loop;
+            end if;
+        end if;
+
         -- Get and process query data.
         loop
             case l_colnames.count
@@ -1506,30 +1533,6 @@ create or replace package body at_out is
             end case;
             exit when p_cursor%notfound;
 
-            if l_row_count = p_skip_rows then
-                if p_header then
-                    -- Make title row.
-                    l_row_count := l_row_count + 1;
-                    as_xlsx.set_row(
-                        l_row_count,
-                        p_fontId => as_xlsx.get_font('Calibri', p_bold => true)
-                    ); 
-                    for i in 1 .. l_colnames.count loop
-                        as_xlsx.cell(
-                            i, l_row_count, l_colnames(i),
-                            p_borderId => as_xlsx.get_border('thin', 'thin', 'thin', 'thin'),
-                            p_alignment => as_xlsx.get_alignment(p_horizontal => 'center', p_vertical => 'top', p_wraptext => true)
-                        );
-                    end loop;
-                end if;
-                if p_colwidths.count > 0 then
-                    -- Set column widths.
-                    for i in 1 .. p_colwidths.count loop
-                        as_xlsx.set_column_width(p_col => i, p_width => as_xlsx.width_pix_to_characters(p_colwidths(i)));
-                    end loop;
-                end if;
-            end if;
-
             -- Make data row.
             l_row_count := l_row_count + 1;
             for i in 1 .. l_colnames.count loop
@@ -1537,20 +1540,20 @@ create or replace package body at_out is
                     when dbms_types.TYPECODE_NUMBER then
                         as_xlsx.cell(
                             i, l_row_count, to_number(c(i)),
-                            p_alignment => as_xlsx.get_alignment(p_horizontal => 'right', p_vertical => 'middle', p_wraptext => false),
-                            p_borderId => as_xlsx.get_border('thin', 'thin', 'thin', 'thin')
+                            p_alignment => c_align_right, --as_xlsx.get_alignment(p_horizontal => 'right', p_vertical => 'middle', p_wraptext => false),
+                            p_borderId => c_border --as_xlsx.get_border('thin', 'thin', 'thin', 'thin')
                         );
                     when dbms_types.TYPECODE_DATE then
                         as_xlsx.cell(
                             i, l_row_count, to_date(c(i)),
-                            p_alignment => as_xlsx.get_alignment(p_horizontal => 'center', p_vertical => 'middle', p_wraptext => false),
-                            p_borderId => as_xlsx.get_border('thin', 'thin', 'thin', 'thin')
+                            p_alignment => c_align_center, --as_xlsx.get_alignment(p_horizontal => 'center', p_vertical => 'middle', p_wraptext => false),
+                            p_borderId => c_border --as_xlsx.get_border('thin', 'thin', 'thin', 'thin')
                         );
                     else
                         as_xlsx.cell(
                             i, l_row_count, nvl(c(i), ''), -- PL/SQL empty line is important
-                            p_alignment => as_xlsx.get_alignment(p_horizontal => 'left', p_vertical => 'middle', p_wraptext => false),
-                            p_borderId => as_xlsx.get_border('thin', 'thin', 'thin', 'thin')
+                            p_alignment => c_align_left, --as_xlsx.get_alignment(p_horizontal => 'left', p_vertical => 'middle', p_wraptext => false),
+                            p_borderId => c_border --as_xlsx.get_border('thin', 'thin', 'thin', 'thin')
                         );
                 end case;
             end loop;

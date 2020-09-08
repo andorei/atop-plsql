@@ -93,6 +93,22 @@ THE SOFTWARE.
         p_dir varchar2 default at_env.c_out_dir
     );
 
+    -- Write at_type.varchars to file.
+    procedure varchars_to_file(
+        p_content in at_type.varchars,
+        p_file_name varchar2,
+        p_dir varchar2 default at_env.c_out_dir,
+        p_lang in varchar2 default at_env.c_nls_lang
+    );
+
+    -- Write at_type.lvarchars to file.
+    procedure lvarchars_to_file(
+        p_content in at_type.lvarchars,
+        p_file_name varchar2,
+        p_dir varchar2 default at_env.c_out_dir,
+        p_lang in varchar2 default at_env.c_nls_lang
+    );
+
     -- Get table from the csv-file clob.
     -- select * from table(at_file.csv_table(<clob>));
     function csv_table(
@@ -370,6 +386,56 @@ create or replace package body at_file is
             end if;
             raise;
     end blob_to_file;
+
+    -- Write at_type.varchars to file.
+    procedure varchars_to_file(
+        p_content in at_type.varchars,
+        p_file_name varchar2,
+        p_dir varchar2 default at_env.c_out_dir,
+        p_lang in varchar2 default at_env.c_nls_lang
+    ) is
+        i pls_integer;
+        l_file utl_file.file_type;
+    begin
+        l_file := out_file(p_file_name, p_dir);
+        if p_content.count > 0 then
+            i := p_content.first;
+            while i is not null loop
+                write(l_file, p_content(i), p_lang);
+                i := p_content.next(i);
+            end loop;
+        end if;
+        at_file.close(l_file);
+    exception
+        when others then
+            at_file.close(l_file);
+            raise;
+    end varchars_to_file;
+
+    -- Write at_type.lvarchars to file.
+    procedure lvarchars_to_file(
+        p_content in at_type.lvarchars,
+        p_file_name varchar2,
+        p_dir varchar2 default at_env.c_out_dir,
+        p_lang in varchar2 default at_env.c_nls_lang
+    ) is
+        i pls_integer;
+        l_file utl_file.file_type;
+    begin
+        l_file := out_file(p_file_name, p_dir);
+        if p_content.count > 0 then
+            i := p_content.first;
+            while i is not null loop
+                write(l_file, p_content(i), p_lang);
+                i := p_content.next(i);
+            end loop;
+        end if;
+        at_file.close(l_file);
+    exception
+        when others then
+            at_file.close(l_file);
+            raise;
+    end lvarchars_to_file;
 
     -- Get table from the csv-file clob.
     -- select * from table(at_file.csv_table(<clob>));

@@ -7,6 +7,7 @@ Changelog
     2018-02-08 Andrei Trofimov add named_varchars type.
     2018-06-22 Andrei Trofimov raise_application_error in assetred_% procedures.
     2018-08-20 Andrei Trofimov add clob_to_blob.
+    2020-09-08 Andrei Trofimov add to_<type> functions.
 
 ********************************************************************************
 Copyright (C) 2017-2018 by Andrei Trofimov
@@ -174,7 +175,6 @@ THE SOFTWARE.
     ) return at_table10;
 
     -- Conversion functions that raise assertion error if conversion fails.
-
     function asserted_number(
         p in varchar2,
         p_message varchar2 default null
@@ -207,6 +207,42 @@ THE SOFTWARE.
         p in varchar2,
         p_message varchar2 default null,
         p_format varchar2 default at_env.c_timestamp_tz_format
+    ) return timestamp with time zone;
+    
+
+    -- Conversion functions that return p_default if conversion fails.
+    function to_number(
+        p in varchar2,
+        p_default number default null
+    ) return number;
+
+    function to_integer(
+        p in varchar2,
+        p_default pls_integer default null
+    ) return pls_integer;
+
+    function to_date(
+        p in varchar2,
+        p_format varchar2 default at_env.c_date_format,
+        p_default date default null
+    ) return date;
+
+    function to_datetime(
+        p in varchar2,
+        p_format varchar2 default at_env.c_datetime_format,
+        p_default date default null
+    ) return date;
+
+    function to_timestamp(
+        p in varchar2,
+        p_format varchar2 default at_env.c_timestamp_format,
+        p_default timestamp default null
+    ) return timestamp;
+
+    function to_timestamp_tz(
+        p in varchar2,
+        p_format varchar2 default at_env.c_timestamp_tz_format,
+        p_default timestamp  with time zone default null
     ) return timestamp with time zone;
 
     -- Convert at_type.lvarchars assosiative array to CLOB.
@@ -518,7 +554,6 @@ create or replace package body at_type is
     end to_at_table10;
 
     -- Conversion functions that raise assertion error if conversion fails.
-
     function asserted_number(
         p in varchar2,
         p_message varchar2 default null
@@ -653,6 +688,88 @@ create or replace package body at_type is
                 end
             );
     end;
+    
+    -- Conversion functions that return p_default if conversion fails.
+    function to_number(
+        p in varchar2,
+        p_default number default null
+    ) return number
+    is
+    begin
+        return to_number(p);
+    exception
+        when value_error then
+            return p_default;
+    end to_number;
+
+    function to_integer(
+        p in varchar2,
+        p_default pls_integer default null
+    ) return pls_integer
+    is
+        l_int pls_integer;
+    begin
+        l_int := to_number(p);
+        if l_int != to_number(p) then
+            return p_default;
+        end if;
+        return l_int;
+    exception
+        when value_error then
+            return p_default;
+    end to_integer;
+
+    function to_date(
+        p in varchar2,
+        p_format varchar2 default at_env.c_date_format,
+        p_default date default null
+    ) return date
+    is
+    begin
+        return to_date(p, p_format);
+    exception
+        when others then
+            return p_default;
+    end to_date;
+
+    function to_datetime(
+        p in varchar2,
+        p_format varchar2 default at_env.c_datetime_format,
+        p_default date default null
+    ) return date
+    is
+    begin
+        return to_date(p, p_format);
+    exception
+        when others then
+            return p_default;
+    end to_datetime;
+
+    function to_timestamp(
+        p in varchar2,
+        p_format varchar2 default at_env.c_timestamp_format,
+        p_default timestamp default null
+    ) return timestamp
+    is
+    begin
+        return to_timestamp(p, p_format);
+    exception
+        when others then
+            return p_default;
+    end to_timestamp;
+
+    function to_timestamp_tz(
+        p in varchar2,
+        p_format varchar2 default at_env.c_timestamp_tz_format,
+        p_default timestamp  with time zone default null
+    ) return timestamp with time zone
+    is
+    begin
+        return to_timestamp_tz(p, p_format);
+    exception
+        when others then
+            return p_default;
+    end to_timestamp_tz;
 
     function lvarchars_to_clob(
         p_content at_type.lvarchars
