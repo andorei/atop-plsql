@@ -608,7 +608,7 @@ create or replace package body at_type is
     ) return date
     is
     begin
-        return to_date(p, p_format);
+        return standard.to_date(p, p_format);
     exception
         when others then
             raise_application_error(
@@ -630,7 +630,7 @@ create or replace package body at_type is
     ) return date
     is
     begin
-        return to_date(p, p_format);
+        return standard.to_date(p, p_format);
     exception
         when others then
             raise_application_error(
@@ -726,7 +726,7 @@ create or replace package body at_type is
     ) return date
     is
     begin
-        return to_date(p, p_format);
+        return standard.to_date(p, p_format);
     exception
         when others then
             return p_default;
@@ -739,7 +739,7 @@ create or replace package body at_type is
     ) return date
     is
     begin
-        return to_date(p, p_format);
+        return standard.to_date(p, p_format);
     exception
         when others then
             return p_default;
@@ -752,7 +752,7 @@ create or replace package body at_type is
     ) return timestamp
     is
     begin
-        return to_timestamp(p, p_format);
+        return standard.to_timestamp(p, p_format);
     exception
         when others then
             return p_default;
@@ -765,7 +765,7 @@ create or replace package body at_type is
     ) return timestamp with time zone
     is
     begin
-        return to_timestamp_tz(p, p_format);
+        return standard.to_timestamp_tz(p, p_format);
     exception
         when others then
             return p_default;
