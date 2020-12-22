@@ -245,6 +245,16 @@ THE SOFTWARE.
         p_default timestamp  with time zone default null
     ) return timestamp with time zone;
 
+    -- Convert at_type.varchars assosiative array to CLOB.
+    function varchars_to_clob(
+        p_content at_type.varchars
+    ) return clob;
+
+    -- Convert at_type.varchars assosiative array to BLOB.
+    function varchars_to_blob(
+        p_content at_type.varchars
+    ) return blob;
+
     -- Convert at_type.lvarchars assosiative array to CLOB.
     function lvarchars_to_clob(
         p_content at_type.lvarchars
@@ -770,6 +780,40 @@ create or replace package body at_type is
         when others then
             return p_default;
     end to_timestamp_tz;
+
+    function varchars_to_clob(
+        p_content at_type.varchars
+    ) return clob
+    is
+        l_clob clob;
+        i pls_integer;
+    begin
+        dbms_lob.createtemporary(l_clob, true);
+        i := p_content.first;
+        while i is not null loop
+            dbms_lob.writeappend(l_clob, length(p_content(i)), p_content(i));
+            i := p_content.next(i);
+        end loop;
+        return l_clob;
+    end varchars_to_clob;
+
+    function varchars_to_blob(
+        p_content at_type.varchars
+    ) return blob
+    is
+        l_blob blob;
+        l_raw raw(32767);
+        i pls_integer;
+    begin
+        dbms_lob.createtemporary(l_blob, true);
+        i := p_content.first;
+        while i is not null loop
+            l_raw := utl_raw.cast_to_raw(p_content(i));
+            dbms_lob.writeappend(l_blob, utl_raw.length(l_raw), l_raw);
+            i := p_content.next(i);
+        end loop;
+        return l_blob;
+    end varchars_to_blob;
 
     function lvarchars_to_clob(
         p_content at_type.lvarchars

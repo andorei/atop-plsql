@@ -121,7 +121,11 @@ THE SOFTWARE.
     function is_anon return boolean;
 
     -- Run PL/SQL block as scheduler job.
-    procedure run_job(p_plsql varchar2, p_comments varchar2 default null);
+    procedure run_job(
+        p_plsql varchar2,
+        p_name varchar2 default null,
+        p_comments varchar2 default null
+    );
 
 end at_util;
 /
@@ -413,11 +417,14 @@ create or replace package body at_util is
     end is_anon;
 
     -- Run PL/SQL block as scheduler job.
-    procedure run_job(p_plsql varchar2, p_comments varchar2 default null)
-    is
+    procedure run_job(
+        p_plsql varchar2,
+        p_name varchar2 default null,
+        p_comments varchar2 default null
+    ) is
     begin
         dbms_scheduler.create_job(
-            job_name => dbms_scheduler.generate_job_name,
+            job_name => nvl(p_name, dbms_scheduler.generate_job_name),
             job_type => 'PLSQL_BLOCK',
             job_action => 'begin '||rtrim(p_plsql, ';'||at_env.whitespace)||'; end;',
             enabled => TRUE,

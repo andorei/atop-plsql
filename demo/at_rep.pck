@@ -144,7 +144,7 @@ create or replace package body at_rep is
                 and r.owner = j.owner
                 and r.job_name = j.job_name
                 and not regexp_like(r.job_name, l_longrun_jobs_re)
-                and not regexp_like(j.comments, l_longrun_jobs_re)
+                and not regexp_like(nvl(j.comments, ' '), l_longrun_jobs_re)
         ) loop
             begin
                 sys.dbms_scheduler.stop_job(r.job_name, force => true);
