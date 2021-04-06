@@ -1,19 +1,11 @@
-CREATE OR REPLACE PACKAGE at_smtp IS
+﻿CREATE OR REPLACE PACKAGE at_smtp IS
 /*******************************************************************************
     Send email with optional attachments.
 
-Changelog
-    2013-04-24 Andrei Trofimov create package based on MAIL_PKG by Alexander Nekrasov
-    2013-07-09 Andrei Trofimov implement CC and BCC support
-    2015-09-10 Andrei Trofimov use dbms_sql.varchar2a as message and attachment
-    2015-10-21 Andrei Trofimov add support for zipped attachments
-    2017-09-15 Andrei Trofimov add support for LOBs as message and attachments
-                               zip attachments with at_util.zipped if needed
-    2018-02-05 Andrei Trofimov use at_type.lvarchars instead of dbms_sql.varchar2a
-    2018-02-27 Andrei Trofimov use at_cfg as a source for default parameters
+    This package was created based on MAIL_PKG package by Alexander Nekrasov.
 
 ********************************************************************************
-Copyright (C) 2013-2018 by Andrei Trofimov
+Copyright (C) 2013-2021 by Andrei Trofimov
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -84,7 +76,9 @@ THE SOFTWARE.
         p_subject  in varchar2,
         p_message  in at_type.lvarchars,
         p_mime_type in varchar2 default 'text/plain',
-        p_priority in number default null
+        p_priority in number default null,
+        p_reply_to in varchar2 default null,
+        p_return_path in varchar2 default null
     );
 
     procedure send(
@@ -95,7 +89,9 @@ THE SOFTWARE.
         p_subject  in varchar2,
         p_message  in clob,
         p_mime_type in varchar2 default 'text/plain',
-        p_priority in number default null
+        p_priority in number default null,
+        p_reply_to in varchar2 default null,
+        p_return_path in varchar2 default null
     );
 
 end at_smtp;
@@ -283,7 +279,9 @@ create or replace package body at_smtp is
         p_subject  in varchar2,
         p_message  in at_type.lvarchars,
         p_mime_type in varchar2 default 'text/plain',
-        p_priority in number default null
+        p_priority in number default null,
+        p_reply_to in varchar2 default null,
+        p_return_path in varchar2 default null
     ) is
     begin
         send(p_from      => p_from,
@@ -293,7 +291,9 @@ create or replace package body at_smtp is
              p_subject   => p_subject,
              p_message   => at_type.lvarchars_to_clob(p_message),
              p_mime_type => p_mime_type,
-             p_priority  => p_priority
+             p_priority  => p_priority,
+             p_reply_to  => p_reply_to,
+             p_return_path => p_return_path
         );
     end send;
 
@@ -305,7 +305,9 @@ create or replace package body at_smtp is
         p_subject  in varchar2,
         p_message  in clob,
         p_mime_type in varchar2 default 'text/plain',
-        p_priority in number default null
+        p_priority in number default null,
+        p_reply_to in varchar2 default null,
+        p_return_path in varchar2 default null
     ) is
         c_boundary constant varchar2(50) := '-----7D81B75CCC90DFRW4F7A1CBD';
         -- 48 bytes binary convert to 128 bytes of base64
@@ -323,6 +325,8 @@ create or replace package body at_smtp is
         l_cc_list  rcpt_list;
         l_bcc_list rcpt_list;
         l_from     rcpt_row;
+        l_return_path rcpt_row;
+        l_reply_to rcpt_row;
 
         procedure write_recipients(
             p_conn in out utl_smtp.connection,
@@ -392,7 +396,12 @@ create or replace package body at_smtp is
         end if;
 
         l_from := create_rcpt_list(p_from)(1);
-        utl_smtp.mail(l_conn, l_from.rcptmail);
+        if p_return_path is not null then
+            l_return_path := create_rcpt_list(p_return_path)(1);
+            utl_smtp.mail(l_conn, l_return_path.rcptmail);
+        else
+            utl_smtp.mail(l_conn, l_from.rcptmail);
+        end if;
 
         -- set addressees
         for i in 1 .. l_to_list.count loop
@@ -416,6 +425,16 @@ create or replace package body at_smtp is
             utl_smtp.write_data(l_conn, l_from.rcptmail);
         end if;
         utl_smtp.write_data(l_conn, c_crlf);
+        if p_reply_to is not null then
+            l_reply_to := create_rcpt_list(p_reply_to)(1);
+            utl_smtp.write_data(l_conn, 'Reply-To: ');
+            if l_reply_to.rcptname is not null then
+                utl_smtp.write_data(l_conn, encode(l_reply_to.rcptname) || ' <' || l_reply_to.rcptmail || '>');
+            else
+                utl_smtp.write_data(l_conn, l_reply_to.rcptmail);
+            end if;
+            utl_smtp.write_data(l_conn, c_crlf);
+        end if;
         utl_smtp.write_data(l_conn, 'Subject: ' || encode(p_subject) || c_crlf);
         write_recipients(l_conn, 'To: ', l_to_list);
         write_recipients(l_conn, 'Cc: ', l_cc_list);

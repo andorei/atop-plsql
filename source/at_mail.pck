@@ -2,12 +2,8 @@ create or replace package at_mail is
 /*******************************************************************************
     Send email with optional attachments.
 
-Changelog
-    2016-02-09 Andrei Trofimov create package
-    2017-04-09 Andrei Trofimov add procedures with p_owner
-
 ********************************************************************************
-Copyright (C) 2016-2018 by Andrei Trofimov
+Copyright (C) 2016-2021 by Andrei Trofimov
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -41,6 +37,8 @@ THE SOFTWARE.
         p_status varchar2 default at_env.c_status_on,
         p_priority pls_integer default 3, /*3 - normal, 2 - high, 1 - highest*/
         p_from varchar2 default at_env.c_email_from,
+        p_reply_to varchar2 default null,
+        p_return_path varchar2 default null,
         p_greeting varchar2 default null,
         p_signature varchar2 default null
     );
@@ -70,6 +68,8 @@ THE SOFTWARE.
         p_status varchar2 default at_env.c_status_on,
         p_priority pls_integer default 3, /*3 - normal, 2 - high, 1 - highest*/
         p_from varchar2 default at_env.c_email_from,
+        p_reply_to varchar2 default null,
+        p_return_path varchar2 default null,
         p_greeting varchar2 default null,
         p_signature varchar2 default null
     );
@@ -99,6 +99,8 @@ THE SOFTWARE.
         p_status varchar2 default at_env.c_status_on,
         p_priority pls_integer default 3, /*3 - normal, 2 - high, 1 - highest*/
         p_from varchar2 default at_env.c_email_from,
+        p_reply_to varchar2 default null,
+        p_return_path varchar2 default null,
         p_greeting varchar2 default null,
         p_signature varchar2 default null
     );
@@ -128,6 +130,8 @@ THE SOFTWARE.
         p_status varchar2 default at_env.c_status_on,
         p_priority pls_integer default 3, /*3 - normal, 2 - high, 1 - highest*/
         p_from varchar2 default at_env.c_email_from,
+        p_reply_to varchar2 default null,
+        p_return_path varchar2 default null,
         p_greeting varchar2 default null,
         p_signature varchar2 default null
     );
@@ -160,6 +164,8 @@ THE SOFTWARE.
         p_status varchar2 default at_env.c_status_on,
         p_priority pls_integer default 3, /*3 - normal, 2 - high, 1 - highest*/
         p_from varchar2 default at_env.c_email_from,
+        p_reply_to varchar2 default null,
+        p_return_path varchar2 default null,
         p_greeting varchar2 default null,
         p_signature varchar2 default null
     );
@@ -197,6 +203,8 @@ THE SOFTWARE.
         p_status varchar2 default at_env.c_status_on,
         p_priority pls_integer default 3, /*3 - normal, 2 - high, 1 - highest*/
         p_from varchar2 default at_env.c_email_from,
+        p_reply_to varchar2 default null,
+        p_return_path varchar2 default null,
         p_greeting varchar2 default null,
         p_signature varchar2 default null
     );
@@ -233,6 +241,8 @@ create or replace package body at_mail is
         p_status varchar2 default at_env.c_status_on,
         p_priority pls_integer default 3, /*3 - normal, 2 - high, 1 - highest*/
         p_from varchar2 default at_env.c_email_from,
+        p_reply_to varchar2 default null,
+        p_return_path varchar2 default null,
         p_greeting varchar2 default null,
         p_signature varchar2 default null
     )
@@ -279,7 +289,9 @@ create or replace package body at_mail is
             p_subject  => at_env.c_email_subj_prefix || ' ' || p_subject,
             p_message  => p_message,
             p_mime_type => 'text/html',
-            p_priority => p_priority
+            p_priority => p_priority,
+            p_reply_to => p_reply_to,
+            p_return_path => p_return_path
         );
     end send_html;
 
@@ -297,9 +309,25 @@ create or replace package body at_mail is
         l_to varchar2(4000);
         l_cc varchar2(4000);
         l_bcc varchar2(4000);
+        l_from varchar2(4000);
+        l_reply_to varchar2(4000);
+        l_return_path varchar2(4000);
     begin
-        at_conf.get_email(p_owner, l_to, l_cc, l_bcc);
-        send_html(l_to, p_subject, p_message, l_cc, l_bcc, p_status, p_priority, p_from, p_greeting, p_signature);
+        at_conf.get_email(p_owner, l_to, l_cc, l_bcc, l_from, l_reply_to, l_return_path);
+        send_html(
+            p_to        => l_to,
+            p_subject   => p_subject,
+            p_message   => p_message,
+            p_cc        => l_cc,
+            p_bcc       => l_bcc,
+            p_status    => p_status,
+            p_priority  => p_priority,
+            p_from      => nvl(l_from, p_from),
+            p_reply_to  => l_reply_to,
+            p_return_path => l_return_path,
+            p_greeting  => p_greeting,
+            p_signature => p_signature
+        );
     end send_html;
 
     procedure send_html(
@@ -311,6 +339,8 @@ create or replace package body at_mail is
         p_status varchar2 default at_env.c_status_on,
         p_priority pls_integer default 3, /*3 - normal, 2 - high, 1 - highest*/
         p_from varchar2 default at_env.c_email_from,
+        p_reply_to varchar2 default null,
+        p_return_path varchar2 default null,
         p_greeting varchar2 default null,
         p_signature varchar2 default null
     )
@@ -318,7 +348,20 @@ create or replace package body at_mail is
         l_message at_type.lvarchars;
     BEGIN
         l_message(1) := p_message;
-        send_html(p_to, p_subject, l_message, p_cc, p_bcc, p_status, p_priority, p_from, p_greeting, p_signature);
+        send_html(
+            p_to        => p_to,
+            p_subject   => p_subject,
+            p_message   => l_message,
+            p_cc        => p_cc,
+            p_bcc       => p_bcc,
+            p_status    => p_status,
+            p_priority  => p_priority,
+            p_from      => p_from,
+            p_reply_to  => p_reply_to,
+            p_return_path => p_return_path,
+            p_greeting  => p_greeting,
+            p_signature => p_signature
+        );
     end send_html;
 
     procedure send_html(
@@ -335,9 +378,25 @@ create or replace package body at_mail is
         l_to varchar2(4000);
         l_cc varchar2(4000);
         l_bcc varchar2(4000);
+        l_from varchar2(4000);
+        l_reply_to varchar2(4000);
+        l_return_path varchar2(4000);
     begin
-        at_conf.get_email(p_owner, l_to, l_cc, l_bcc);
-        send_html(l_to, p_subject, p_message, l_cc, l_bcc, p_status, p_priority, p_from, p_greeting, p_signature);
+        at_conf.get_email(p_owner, l_to, l_cc, l_bcc, l_from, l_reply_to, l_return_path);
+        send_html(
+            p_to        => l_to,
+            p_subject   => p_subject,
+            p_message   => p_message,
+            p_cc        => l_cc,
+            p_bcc       => l_bcc,
+            p_status    => p_status,
+            p_priority  => p_priority,
+            p_from      => nvl(l_from, p_from),
+            p_reply_to  => l_reply_to,
+            p_return_path => l_return_path,
+            p_greeting  => p_greeting,
+            p_signature => p_signature
+        );
     end send_html;
 
     procedure send_text(
@@ -349,6 +408,8 @@ create or replace package body at_mail is
         p_status varchar2 default at_env.c_status_on,
         p_priority pls_integer default 3, /*3 - normal, 2 - high, 1 - highest*/
         p_from varchar2 default at_env.c_email_from,
+        p_reply_to varchar2 default null,
+        p_return_path varchar2 default null,
         p_greeting varchar2 default null,
         p_signature varchar2 default null
     )
@@ -392,7 +453,9 @@ create or replace package body at_mail is
             p_subject  => at_env.c_email_subj_prefix || ' ' || p_subject,
             p_message  => p_message,
             p_mime_type => 'text/plain',
-            p_priority => p_priority
+            p_priority => p_priority,
+            p_reply_to => p_reply_to,
+            p_return_path => p_return_path
         );
     end send_text;
 
@@ -410,9 +473,25 @@ create or replace package body at_mail is
         l_to varchar2(4000);
         l_cc varchar2(4000);
         l_bcc varchar2(4000);
+        l_from varchar2(4000);
+        l_reply_to varchar2(4000);
+        l_return_path varchar2(4000);
     begin
-        at_conf.get_email(p_owner, l_to, l_cc, l_bcc);
-        send_text(l_to, p_subject, p_message, l_cc, l_bcc, p_status, p_priority, p_from, p_greeting, p_signature);
+        at_conf.get_email(p_owner, l_to, l_cc, l_bcc, l_from, l_reply_to, l_return_path);
+        send_text(
+            p_to        => l_to,
+            p_subject   => p_subject,
+            p_message   => p_message,
+            p_cc        => l_cc,
+            p_bcc       => l_bcc,
+            p_status    => p_status,
+            p_priority  => p_priority,
+            p_from      => nvl(l_from, p_from),
+            p_reply_to  => l_reply_to,
+            p_return_path => l_return_path,
+            p_greeting  => p_greeting,
+            p_signature => p_signature
+        );
     end send_text;
 
     procedure send_text(
@@ -424,6 +503,8 @@ create or replace package body at_mail is
         p_status varchar2 default at_env.c_status_on,
         p_priority pls_integer default 3, /*3 - normal, 2 - high, 1 - highest*/
         p_from varchar2 default at_env.c_email_from,
+        p_reply_to varchar2 default null,
+        p_return_path varchar2 default null,
         p_greeting varchar2 default null,
         p_signature varchar2 default null
     )
@@ -431,7 +512,20 @@ create or replace package body at_mail is
         l_message at_type.lvarchars;
     BEGIN
         l_message(1) := p_message;
-        send_text(p_to, p_subject, l_message, p_cc, p_bcc, p_status, p_priority, p_from, p_greeting, p_signature);
+        send_text(
+            p_to        => p_to,
+            p_subject   => p_subject,
+            p_message   => l_message,
+            p_cc        => p_cc,
+            p_bcc       => p_bcc,
+            p_status    => p_status,
+            p_priority  => p_priority,
+            p_from      => p_from,
+            p_reply_to  => p_reply_to,
+            p_return_path => p_return_path,
+            p_greeting  => p_greeting,
+            p_signature => p_signature
+        );
     end send_text;
 
     procedure send_text(
@@ -448,9 +542,25 @@ create or replace package body at_mail is
         l_to varchar2(4000);
         l_cc varchar2(4000);
         l_bcc varchar2(4000);
+        l_from varchar2(4000);
+        l_reply_to varchar2(4000);
+        l_return_path varchar2(4000);
     begin
-        at_conf.get_email(p_owner, l_to, l_cc, l_bcc);
-        send_text(l_to, p_subject, p_message, l_cc, l_bcc, p_status, p_priority, p_from, p_greeting, p_signature);
+        at_conf.get_email(p_owner, l_to, l_cc, l_bcc, l_from, l_reply_to, l_return_path);
+        send_text(
+            p_to        => l_to,
+            p_subject   => p_subject,
+            p_message   => p_message,
+            p_cc        => l_cc,
+            p_bcc       => l_bcc,
+            p_status    => p_status,
+            p_priority  => p_priority,
+            p_from      => nvl(l_from, p_from),
+            p_reply_to  => l_reply_to,
+            p_return_path => l_return_path,
+            p_greeting  => p_greeting,
+            p_signature => p_signature
+        );
     end send_text;
 
     procedure send_html_table(
@@ -464,6 +574,8 @@ create or replace package body at_mail is
         p_status varchar2 default at_env.c_status_on,
         p_priority pls_integer default 3, /*3 - normal, 2 - high, 1 - highest*/
         p_from varchar2 default at_env.c_email_from,
+        p_reply_to varchar2 default null,
+        p_return_path varchar2 default null,
         p_greeting varchar2 default null,
         p_signature varchar2 default null
     )
@@ -487,6 +599,8 @@ create or replace package body at_mail is
                 p_status    => p_status,
                 p_priority  => p_priority,
                 p_from  => p_from,
+                p_reply_to  => p_reply_to,
+                p_return_path => p_return_path,
                 p_greeting  => p_greeting,
                 p_signature => p_signature
             );
@@ -509,8 +623,11 @@ create or replace package body at_mail is
         l_to varchar2(4000);
         l_cc varchar2(4000);
         l_bcc varchar2(4000);
+        l_from varchar2(4000);
+        l_reply_to varchar2(4000);
+        l_return_path varchar2(4000);
     begin
-        at_conf.get_email(p_owner, l_to, l_cc, l_bcc);
+        at_conf.get_email(p_owner, l_to, l_cc, l_bcc, l_from, l_reply_to, l_return_path);
         send_html_table(
             p_to => l_to,
             p_cc => l_cc,
@@ -521,7 +638,9 @@ create or replace package body at_mail is
             p_colnames => p_colnames,
             p_status => p_status,
             p_priority => p_priority,
-            p_from => p_from,
+            p_from => nvl(l_from, p_from),
+            p_reply_to  => l_reply_to,
+            p_return_path => l_return_path,
             p_greeting => p_greeting,
             p_signature => p_signature
         );
@@ -540,6 +659,8 @@ create or replace package body at_mail is
         p_status varchar2 default at_env.c_status_on,
         p_priority pls_integer default 3, /*3 - normal, 2 - high, 1 - highest*/
         p_from varchar2 default at_env.c_email_from,
+        p_reply_to varchar2 default null,
+        p_return_path varchar2 default null,
         p_greeting varchar2 default null,
         p_signature varchar2 default null
     )
@@ -572,6 +693,8 @@ create or replace package body at_mail is
                 p_status    => p_status,
                 p_priority  => p_priority,
                 p_from  => p_from,
+                p_reply_to  => p_reply_to,
+                p_return_path => p_return_path,
                 p_greeting  => p_greeting,
                 p_signature => p_signature
             );
@@ -596,8 +719,11 @@ create or replace package body at_mail is
         l_to varchar2(4000);
         l_cc varchar2(4000);
         l_bcc varchar2(4000);
+        l_from varchar2(4000);
+        l_reply_to varchar2(4000);
+        l_return_path varchar2(4000);
     begin
-        at_conf.get_email(p_owner, l_to, l_cc, l_bcc);
+        at_conf.get_email(p_owner, l_to, l_cc, l_bcc, l_from, l_reply_to, l_return_path);
         send_html_file(
             p_to => l_to,
             p_cc => l_cc,
@@ -610,7 +736,9 @@ create or replace package body at_mail is
             p_compress => p_compress,
             p_status => p_status,
             p_priority => p_priority,
-            p_from => p_from,
+            p_from => nvl(l_from, p_from),
+            p_reply_to  => l_reply_to,
+            p_return_path => l_return_path,
             p_greeting => p_greeting,
             p_signature => p_signature
         );

@@ -2,13 +2,8 @@ create or replace package at_conf is
 /*******************************************************************************
     Configuration parameters API.
 
-Changelog
-    2016-08-17 Andrei Trofimov create package
-    2016-09-01 Andrei Trofimov add support for dymamic @values and @@lists
-    2018-02-08 Andrei Trofimov switch to at_type.named_varchars
-
 ********************************************************************************
-Copyright (C) 2016-2018 by Andrei Trofimov
+Copyright (C) 2016-2021 by Andrei Trofimov
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +29,9 @@ THE SOFTWARE.
     c_email_to constant at_conf_.name%type := '@@email_to';
     c_email_cc constant at_conf_.name%type := '@@email_cc';
     c_email_bcc constant at_conf_.name%type := '@@email_bcc';
+    c_email_from constant at_conf_.name%type := '@email_from';
+    c_email_reply_to constant at_conf_.name%type := '@email_rep';
+    c_email_return_path constant at_conf_.name%type := '@email_ret';
 
 
     -- Value of configuration parameter p_name of owner p_owner.
@@ -88,6 +86,21 @@ THE SOFTWARE.
         p_default at_conf_.param%type default null
     ) return varchar2;
 
+    function email_from(
+        p_owner at_conf_.owner%type,
+        p_default at_conf_.param%type default null
+    ) return varchar2;
+
+    function email_reply_to(
+        p_owner at_conf_.owner%type,
+        p_default at_conf_.param%type default null
+    ) return varchar2;
+
+    function email_return_path(
+        p_owner at_conf_.owner%type,
+        p_default at_conf_.param%type default null
+    ) return varchar2;
+
     procedure set_email(
         p_owner at_conf_.owner%type,
         p_to at_conf_.param%type,
@@ -96,11 +109,32 @@ THE SOFTWARE.
         p_descr at_conf_.descr%type
     );
 
+    procedure set_email(
+        p_owner at_conf_.owner%type,
+        p_to at_conf_.param%type,
+        p_cc at_conf_.param%type,
+        p_bcc at_conf_.param%type,
+        p_from at_conf_.param%type,
+        p_reply_to at_conf_.param%type,
+        p_return_path at_conf_.param%type,
+        p_descr at_conf_.descr%type
+    );
+
     procedure get_email(
         p_owner at_conf_.owner%type,
         o_to out at_conf_.param%type,
         o_cc out at_conf_.param%type,
         o_bcc out at_conf_.param%type
+    );
+
+    procedure get_email(
+        p_owner at_conf_.owner%type,
+        o_to out at_conf_.param%type,
+        o_cc out at_conf_.param%type,
+        o_bcc out at_conf_.param%type,
+        o_from out at_conf_.param%type,
+        o_reply_to out at_conf_.param%type,
+        o_return_path out at_conf_.param%type
     );
 
     procedure delete_email(
@@ -267,6 +301,33 @@ create or replace package body at_conf is
         return param(p_owner, c_email_bcc, p_default);
     end email_bcc;
 
+    function email_from(
+        p_owner at_conf_.owner%type,
+        p_default at_conf_.param%type default null
+    ) return varchar2
+    is
+    begin
+        return param(p_owner, c_email_from, p_default);
+    end email_from;
+
+    function email_reply_to(
+        p_owner at_conf_.owner%type,
+        p_default at_conf_.param%type default null
+    ) return varchar2
+    is
+    begin
+        return param(p_owner, c_email_reply_to, p_default);
+    end email_reply_to;
+
+    function email_return_path(
+        p_owner at_conf_.owner%type,
+        p_default at_conf_.param%type default null
+    ) return varchar2
+    is
+    begin
+        return param(p_owner, c_email_return_path, p_default);
+    end email_return_path;
+
     procedure set_email(
         p_owner at_conf_.owner%type,
         p_to at_conf_.param%type,
@@ -278,12 +339,54 @@ create or replace package body at_conf is
     begin
         if p_to is not null then
             set_param(p_owner, c_email_to, p_to, p_descr);
+        else
+            delete_param(p_owner, c_email_to);
         end if;
         if p_cc is not null then
             set_param(p_owner, c_email_cc, p_cc, p_descr);
+        else
+            delete_param(p_owner, c_email_cc);
         end if;
         if p_bcc is not null then
             set_param(p_owner, c_email_bcc, p_bcc, p_descr);
+        else
+            delete_param(p_owner, c_email_bcc);
+        end if;
+    end;
+
+    procedure set_email(
+        p_owner at_conf_.owner%type,
+        p_to at_conf_.param%type,
+        p_cc at_conf_.param%type,
+        p_bcc at_conf_.param%type,
+        p_from at_conf_.param%type,
+        p_reply_to at_conf_.param%type,
+        p_return_path at_conf_.param%type,
+        p_descr at_conf_.descr%type
+    )
+    is
+    begin
+        set_email(
+            p_owner => p_owner,
+            p_to    => p_to,
+            p_cc    => p_cc,
+            p_bcc   => p_bcc,
+            p_descr => p_descr
+        );
+        if p_from is not null then
+            set_param(p_owner, c_email_from, p_from, p_descr);
+        else
+            delete_param(p_owner, c_email_from);
+        end if;
+        if p_reply_to is not null then
+            set_param(p_owner, c_email_reply_to, p_reply_to, p_descr);
+        else
+            delete_param(p_owner, c_email_reply_to);
+        end if;
+        if p_return_path is not null then
+            set_param(p_owner, c_email_return_path, p_return_path, p_descr);
+        else
+            delete_param(p_owner, c_email_return_path);
         end if;
     end;
 
@@ -312,6 +415,40 @@ create or replace package body at_conf is
         end loop;
     end get_email;
 
+    procedure get_email(
+        p_owner at_conf_.owner%type,
+        o_to out at_conf_.param%type,
+        o_cc out at_conf_.param%type,
+        o_bcc out at_conf_.param%type,
+        o_from out at_conf_.param%type,
+        o_reply_to out at_conf_.param%type,
+        o_return_path out at_conf_.param%type
+    )
+    is
+    begin
+        for r in (
+            select name, param
+            from at_conf_
+            where owner = p_owner
+                and name in (c_email_to, c_email_cc, c_email_bcc, c_email_reply_to, c_email_return_path)
+        ) loop
+            case r.name
+            when c_email_to then
+                o_to := evaluated_list(r.param);
+            when c_email_cc then
+                o_cc := evaluated_list(r.param);
+            when c_email_bcc then
+                o_bcc := evaluated_list(r.param);
+            when c_email_from then
+                o_from := evaluated_list(r.param);
+            when c_email_reply_to then
+                o_reply_to := evaluated_list(r.param);
+            when c_email_return_path then
+                o_return_path := evaluated_list(r.param);
+            end case;
+        end loop;
+    end get_email;
+
     procedure delete_email(
         p_owner at_conf_.owner%type
     )
@@ -319,7 +456,7 @@ create or replace package body at_conf is
     begin
         delete from at_conf_
         where owner = p_owner
-            and name in (c_email_to, c_email_cc, c_email_bcc);
+            and name in (c_email_to, c_email_cc, c_email_bcc, c_email_from, c_email_reply_to, c_email_return_path);
     end delete_email;
 
 end at_conf;

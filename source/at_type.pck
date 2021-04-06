@@ -2,15 +2,8 @@ create or replace package at_type is
 /*******************************************************************************
     Define useful types and related utilities.
 
-Changelog
-    2017-12-27 Andrei Trofimov create package.
-    2018-02-08 Andrei Trofimov add named_varchars type.
-    2018-06-22 Andrei Trofimov raise_application_error in assetred_% procedures.
-    2018-08-20 Andrei Trofimov add clob_to_blob.
-    2020-09-08 Andrei Trofimov add to_<type> functions.
-
 ********************************************************************************
-Copyright (C) 2017-2018 by Andrei Trofimov
+Copyright (C) 2017-2020 by Andrei Trofimov
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -39,6 +32,7 @@ THE SOFTWARE.
     type names is table of varchar2(30) index by pls_integer;
     type numbers is table of number index by pls_integer;
     type dates is table of date index by pls_integer;
+    type booleans is table of boolean index by pls_integer;
     type named_varchars is table of varchar2(4000) index by varchar2(30);
 
     -- Empty associative arrays.

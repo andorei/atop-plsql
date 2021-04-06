@@ -2,11 +2,6 @@ create or replace package at_util is
 /*******************************************************************************
     Provide useful utilities.
 
-Changelog
-    2017-12-27 Andrei Trofimov create package.
-    2018-01-31 Andrei Trofimov add to_nls_lang and to_russian_1251.
-    2019-08-05 Andrei Trofimov overload joined for dates and numbers
-
 ********************************************************************************
 Copyright (C) 2017-2019 by Andrei Trofimov
 

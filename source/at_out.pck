@@ -2,12 +2,8 @@ create or replace package at_out is
 /*******************************************************************************
     Utilities to retrieve and output data.
 
-Changelog
-    2018-01-31 Andrei Trofimov create package.
-    2018-08-03 Andrei Trofimov add put_xlsx_% procedures.
-
 ********************************************************************************
-Copyright (C) 2018 by Andrei Trofimov
+Copyright (C) 2018, 2020 by Andrei Trofimov
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -1171,7 +1167,6 @@ create or replace package body at_out is
 
         if p_finish then
             o_blob := as_xlsx.finish;
-            as_xlsx.clear_workbook;
         end if;
     end put_xlsx;
 
