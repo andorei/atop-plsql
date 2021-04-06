@@ -1,4 +1,4 @@
-﻿CREATE OR REPLACE PACKAGE at_smtp IS
+CREATE OR REPLACE PACKAGE at_smtp IS
 /*******************************************************************************
     Send email with optional attachments.
 
