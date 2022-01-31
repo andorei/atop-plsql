@@ -5,9 +5,10 @@ create or replace package at_file is
 Changelog
     2016-09-05 Andrei Trofimov create package
     2018-08-03 Andrei Trofimov add file_to_blob, clob_to_file, blob_to_file.
+    2021-10-27 Andrei Trofimov use at_ida, at_ida_lines instead of at_file_.
 
 ********************************************************************************
-Copyright (C) 2016-2018 by Andrei Trofimov
+Copyright (C) 2016-2021 by Andrei Trofimov
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -136,19 +137,26 @@ THE SOFTWARE.
         p_charset varchar2 default at_env.c_charset
     ) return at_table pipelined;
 
-    -- Load csv data into at_file_ table and return
-    --    o_load_id  - id of inserted data
+    -- Load csv data into tables at_ida, at_ida_lines and return
+    --    o_iload - id of loaded data
     --    o_rowcount - number of inserted rows
-    -- Get loaded data with query
-    --    select data from at_file_ where id = <o_load_id> order by line;
+    -- Explore loaded data with the queries
+    --    select * from at_ida where iload = <o_iload>;
+    --    select * from at_ida_lines where iload = <o_iload> order by line;
     procedure load_csv(
         p_clob clob,
         p_delim varchar2 default ';',
         p_optionally_enclosed varchar2 default '"',
-        p_com1 at_file_.com1%type default null,
-        p_com2 at_file_.com2%type default null,
-        o_load_id out at_file_.id%type,
-        o_rowcount out pls_integer
+        p_user at_ida.iuser%type default null,
+        p_file at_ida.ifile%type default null,
+        p_entity at_ida.entity%type default null,
+        o_iload out at_ida.iload%type,
+        o_rowcount out pls_integer,
+        p_arg1 at_ida.arg1%type default null,
+        p_arg2 at_ida.arg2%type default null,
+        p_arg3 at_ida.arg3%type default null,
+        p_arg4 at_ida.arg4%type default null,
+        p_arg5 at_ida.arg5%type default null
     );
 
     procedure load_csv(
@@ -156,22 +164,34 @@ THE SOFTWARE.
         p_delim varchar2 default ';',
         p_optionally_enclosed varchar2 default '"',
         p_charset varchar2 default at_env.c_charset,
-        p_com1 at_file_.com1%type default null,
-        p_com2 at_file_.com2%type default null,
-        o_load_id out at_file_.id%type,
-        o_rowcount out pls_integer
+        p_user at_ida.iuser%type default null,
+        p_file at_ida.ifile%type default null,
+        p_entity at_ida.entity%type default null,
+        o_iload out at_ida.iload%type,
+        o_rowcount out pls_integer,
+        p_arg1 at_ida.arg1%type default null,
+        p_arg2 at_ida.arg2%type default null,
+        p_arg3 at_ida.arg3%type default null,
+        p_arg4 at_ida.arg4%type default null,
+        p_arg5 at_ida.arg5%type default null
     );
 
     procedure load_csv(
         p_file_name varchar2,
         p_delim varchar2 default ';',
         p_optionally_enclosed varchar2 default '"',
-        p_dir varchar2 default at_env.c_in_dir,
         p_charset varchar2 default at_env.c_charset,
-        p_com1 at_file_.com1%type default null,
-        p_com2 at_file_.com2%type default null,
-        o_load_id out at_file_.id%type,
-        o_rowcount out pls_integer
+        p_dir varchar2 default at_env.c_in_dir,
+        p_user at_ida.iuser%type default null,
+        p_file at_ida.ifile%type default null,
+        p_entity at_ida.entity%type default null,
+        o_iload out at_ida.iload%type,
+        o_rowcount out pls_integer,
+        p_arg1 at_ida.arg1%type default null,
+        p_arg2 at_ida.arg2%type default null,
+        p_arg3 at_ida.arg3%type default null,
+        p_arg4 at_ida.arg4%type default null,
+        p_arg5 at_ida.arg5%type default null
     );
 end at_file;
 /
@@ -260,7 +280,7 @@ create or replace package body at_file is
         l_dest_offset number;
         l_src_offset number;
         l_lang_ctx number := dbms_lob.default_lang_ctx;
-        l_warning number;
+        l_warning number := 0;
     begin
         l_bfile := bfilename(p_dir, p_file_name);
 
@@ -269,18 +289,20 @@ create or replace package body at_file is
         l_src_offset := 1;  -- from the begining
 
         dbms_lob.fileopen(l_bfile);
-        dbms_lob.loadclobfromfile(
-            dest_lob    => l_clob,
-            src_bfile   => l_bfile,
-            amount      => dbms_lob.lobmaxsize,
-            dest_offset => l_dest_offset,
-            src_offset  => l_src_offset,
-            -- database csid by default or nls_charset_id('AL32UTF8')
-            -- bfile_csid  => dbms_lob.default_csid,
-            bfile_csid  => nls_charset_id(p_charset),
-            lang_context => l_lang_ctx,
-            warning     => l_warning
-        );
+        if dbms_lob.getlength(l_bfile) > 0 then
+            dbms_lob.loadclobfromfile(
+                dest_lob    => l_clob,
+                src_bfile   => l_bfile,
+                amount      => dbms_lob.lobmaxsize,
+                dest_offset => l_dest_offset,
+                src_offset  => l_src_offset,
+                -- database csid by default or nls_charset_id('AL32UTF8')
+                -- bfile_csid  => dbms_lob.default_csid,
+                bfile_csid  => nls_charset_id(p_charset),
+                lang_context => l_lang_ctx,
+                warning     => l_warning
+            );
+        end if;
         dbms_lob.fileclose(l_bfile);
 
         if l_warning != 0 then
@@ -312,13 +334,15 @@ create or replace package body at_file is
         l_src_offset := 1;  -- from the begining
 
         dbms_lob.fileopen(l_bfile);
-        dbms_lob.loadblobfromfile(
-            dest_lob    => l_blob,
-            src_bfile   => l_bfile,
-            amount      => dbms_lob.lobmaxsize,
-            dest_offset => l_dest_offset,
-            src_offset  => l_src_offset
-        );
+        if dbms_lob.getlength(l_bfile) > 0 then
+            dbms_lob.loadblobfromfile(
+                dest_lob    => l_blob,
+                src_bfile   => l_bfile,
+                amount      => dbms_lob.lobmaxsize,
+                dest_offset => l_dest_offset,
+                src_offset  => l_src_offset
+            );
+        end if;
         dbms_lob.fileclose(l_bfile);
 
         return l_blob;
@@ -806,19 +830,26 @@ create or replace package body at_file is
         end if;
     end csv_table;
 
-    -- Load csv data into at_file_ table and return
-    --    o_load_id  - id of inserted data
+    -- Load csv data into tables at_ida, at_ida_lines and return
+    --    o_iload - id of loaded data
     --    o_rowcount - number of inserted rows
-    -- Get loaded data with query
-    --    select data from at_file_ where id = <o_load_id> order by line;
+    -- Explore loaded data with the queries
+    --    select * from at_ida where iload = <o_iload>;
+    --    select * from at_ida_lines where iload = <o_iload> order by line;
     procedure load_csv(
         p_clob clob,
         p_delim varchar2 default ';',
         p_optionally_enclosed varchar2 default '"',
-        p_com1 at_file_.com1%type default null,
-        p_com2 at_file_.com2%type default null,
-        o_load_id out at_file_.id%type,
-        o_rowcount out pls_integer
+        p_user at_ida.iuser%type default null,
+        p_file at_ida.ifile%type default null,
+        p_entity at_ida.entity%type default null,
+        o_iload out at_ida.iload%type,
+        o_rowcount out pls_integer,
+        p_arg1 at_ida.arg1%type default null,
+        p_arg2 at_ida.arg2%type default null,
+        p_arg3 at_ida.arg3%type default null,
+        p_arg4 at_ida.arg4%type default null,
+        p_arg5 at_ida.arg5%type default null
     ) is
         l_char char(1);
         l_lookahead char(1);
@@ -831,7 +862,7 @@ create or replace package body at_file is
         l_lineno pls_integer := 0;
         l_columnno pls_integer := 1;
         l_len pls_integer;
-        l_id varchar2(32) := sys_guid();
+        l_iload at_ida.iload%type;
 
         l_cols at_type.varchars;
     begin
@@ -910,12 +941,33 @@ create or replace package body at_file is
                     l_columnno := l_columnno + 1;
                 end loop;
                 l_lineno := l_lineno + 1;
-                insert into at_file_ (
-                    id,
-                    line,
-                    when,
-                    com1,
-                    com2,
+                if l_lineno = 1 then
+                    insert into at_ida (
+                        iload,
+                        iuser,
+                        ifile,
+                        entity,
+                        arg1,
+                        arg2,
+                        arg3,
+                        arg4,
+                        arg5
+                    ) values (
+                        at_ida_seq.nextval,
+                        p_user,
+                        p_file,
+                        p_entity,
+                        p_arg1,
+                        p_arg2,
+                        p_arg3,
+                        p_arg4,
+                        p_arg5
+                    ) returning iload into l_iload
+                    ;
+                end if;
+                insert into at_ida_lines (
+                    iload,
+                    iline,
                     c1, c2, c3, c4, c5, c6, c7, c8, c9, c10,
                     c11, c12, c13, c14, c15, c16, c17, c18, c19, c20,
                     c21, c22, c23, c24, c25, c26, c27, c28, c29, c30,
@@ -927,11 +979,8 @@ create or replace package body at_file is
                     c81, c82, c83, c84, c85, c86, c87, c88, c89, c90,
                     c91, c92, c93, c94, c95, c96, c97, c98, c99, c100
                 ) values (
-                    l_id,
+                    l_iload,
                     l_lineno,
-                    systimestamp,
-                    p_com1,
-                    p_com2,
                     l_cols(1), l_cols(2), l_cols(3), l_cols(4), l_cols(5), l_cols(6), l_cols(7), l_cols(8), l_cols(9), l_cols(10),
                     l_cols(11), l_cols(12), l_cols(13), l_cols(14), l_cols(15), l_cols(16), l_cols(17), l_cols(18), l_cols(19), l_cols(20),
                     l_cols(21), l_cols(22), l_cols(23), l_cols(24), l_cols(25), l_cols(26), l_cols(27), l_cols(28), l_cols(29), l_cols(30),
@@ -949,7 +998,7 @@ create or replace package body at_file is
             end if;
         end loop;
 
-        o_load_id := l_id;
+        o_iload := l_iload;
         o_rowcount := l_lineno;
     end load_csv;
 
@@ -958,10 +1007,16 @@ create or replace package body at_file is
         p_delim varchar2 default ';',
         p_optionally_enclosed varchar2 default '"',
         p_charset varchar2 default at_env.c_charset,
-        p_com1 at_file_.com1%type default null,
-        p_com2 at_file_.com2%type default null,
-        o_load_id out at_file_.id%type,
-        o_rowcount out pls_integer
+        p_user at_ida.iuser%type default null,
+        p_file at_ida.ifile%type default null,
+        p_entity at_ida.entity%type default null,
+        o_iload out at_ida.iload%type,
+        o_rowcount out pls_integer,
+        p_arg1 at_ida.arg1%type default null,
+        p_arg2 at_ida.arg2%type default null,
+        p_arg3 at_ida.arg3%type default null,
+        p_arg4 at_ida.arg4%type default null,
+        p_arg5 at_ida.arg5%type default null
     ) is
         l_clob clob;
     begin
@@ -970,10 +1025,16 @@ create or replace package body at_file is
             p_clob => l_clob,
             p_delim => p_delim,
             p_optionally_enclosed => p_optionally_enclosed,
-            p_com1 => p_com1,
-            p_com2 => p_com2,
-            o_load_id => o_load_id,
-            o_rowcount => o_rowcount
+            p_user => p_user,
+            p_file => p_file,
+            p_entity => p_entity,
+            o_iload => o_iload,
+            o_rowcount => o_rowcount,
+            p_arg1 => p_arg1,
+            p_arg2 => p_arg2,
+            p_arg3 => p_arg3,
+            p_arg4 => p_arg4,
+            p_arg5 => p_arg5
         );
         if 1 = dbms_lob.istemporary(l_clob) then
             dbms_lob.freetemporary(l_clob);
@@ -984,12 +1045,18 @@ create or replace package body at_file is
         p_file_name varchar2,
         p_delim varchar2 default ';',
         p_optionally_enclosed varchar2 default '"',
-        p_dir varchar2 default at_env.c_in_dir,
         p_charset varchar2 default at_env.c_charset,
-        p_com1 at_file_.com1%type default null,
-        p_com2 at_file_.com2%type default null,
-        o_load_id out at_file_.id%type,
-        o_rowcount out pls_integer
+        p_dir varchar2 default at_env.c_in_dir,
+        p_user at_ida.iuser%type default null,
+        p_file at_ida.ifile%type default null,
+        p_entity at_ida.entity%type default null,
+        o_iload out at_ida.iload%type,
+        o_rowcount out pls_integer,
+        p_arg1 at_ida.arg1%type default null,
+        p_arg2 at_ida.arg2%type default null,
+        p_arg3 at_ida.arg3%type default null,
+        p_arg4 at_ida.arg4%type default null,
+        p_arg5 at_ida.arg5%type default null
     ) is
         l_clob clob;
     begin
@@ -998,10 +1065,16 @@ create or replace package body at_file is
             p_clob => l_clob,
             p_delim => p_delim,
             p_optionally_enclosed => p_optionally_enclosed,
-            p_com1 => p_com1,
-            p_com2 => p_com2,
-            o_load_id => o_load_id,
-            o_rowcount => o_rowcount
+            p_user => p_user,
+            p_file => p_file,
+            p_entity => p_entity,
+            o_iload => o_iload,
+            o_rowcount => o_rowcount,
+            p_arg1 => p_arg1,
+            p_arg2 => p_arg2,
+            p_arg3 => p_arg3,
+            p_arg4 => p_arg4,
+            p_arg5 => p_arg5
         );
         if 1 = dbms_lob.istemporary(l_clob) then
             dbms_lob.freetemporary(l_clob);

@@ -1,9 +1,38 @@
-create table at_file_ (
-    id varchar2(32) not null,
-    line number not null,
-    when timestamp not null,
-    com1 varchar2(4000),  -- maybe filename
-    com2 varchar2(4000),  -- maybe author
+create sequence at_ida_seq;
+
+create table at_ida (
+    iload number(9) primary key,
+    idate timestamp default current_timestamp not null,
+    istat number(1) default 0 not null,
+    iuser varchar2(30) not null,
+    ifile varchar2(256),
+    entity varchar2(50) not null,
+    iretm varchar2(4000),
+	arg1 varchar2(4000),
+	arg2 varchar2(4000),
+	arg3 varchar2(4000),
+	arg4 varchar2(4000),
+	arg5 varchar2(4000)
+);
+comment on table at_ida is 'General-purpose interface table, header';
+comment on column at_ida.iload is 'Load id';
+comment on column at_ida.idate is 'Load timestamp';
+comment on column at_ida.istat is 'Load status: 0 - pending, 1 - processed, 2 - error';
+comment on column at_ida.iuser is 'Who loaded';
+comment on column at_ida.ifile is 'Data source name';
+comment on column at_ida.entity is 'Logical entity';
+comment on column at_ida.iretm is 'Return message';
+comment on column at_ida.arg1 is 'Load argument 1';
+comment on column at_ida.arg2 is 'Load argument 2';
+comment on column at_ida.arg3 is 'Load argument 3';
+comment on column at_ida.arg4 is 'Load argument 4';
+comment on column at_ida.arg5 is 'Load argument 5';
+
+create table at_ida_lines (
+    iload number(9) not null,
+    iline number(9) not null,
+    istat number(1) default 0 not null,
+    ierrm varchar2(4000),
     c1 varchar2(4000),
     c2 varchar2(4000),
     c3 varchar2(4000),
@@ -103,13 +132,12 @@ create table at_file_ (
     c97 varchar2(4000),
     c98 varchar2(4000),
     c99 varchar2(4000),
-    c100 varchar2(4000)
+    c100 varchar2(4000),
+    primary key (iload, iline),
+    foreign key (iload) references at_ida (iload) on delete cascade
 );
-
-comment on table at_file_ is 'Data uploaded from csv files';
-comment on column at_file_.id is 'Upload id';
-comment on column at_file_.line is 'csv file line number';
-comment on column at_file_.when is 'Upload time';
-comment on column at_file_.com1 is 'Commentary, e.g. filename';
-comment on column at_file_.com2 is 'Commentary, e.g. user';
-comment on column at_file_.c1 is 'c1..c100 values from cvs file line';
+comment on table at_ida_lines is 'General-purpose interface table, lines';
+comment on column at_ida_lines.iload is 'Load id';
+comment on column at_ida_lines.iline is 'Line number';
+comment on column at_ida_lines.istat is 'Line status: 0 - pending, 1 - processed, 2 - error';
+comment on column at_ida_lines.ierrm is 'Error message';
