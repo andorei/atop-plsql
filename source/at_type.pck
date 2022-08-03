@@ -266,7 +266,7 @@ THE SOFTWARE.
         p_charset varchar2 default at_env.c_charset
     ) return clob;
 
-    -- Return BLOB created from the p_Òlob —LOB.
+    -- Return BLOB created from the p_—Ålob –°LOB.
     -- When no longer needed remember to free the CLOB with dbms_lob.freetemporary(l_blob).
     function clob_to_blob(
         p_clob clob,
@@ -564,7 +564,7 @@ create or replace package body at_type is
     ) return number
     is
     begin
-        return to_number(p);
+        return standard.to_number(p);
     exception
         when value_error then
             raise_application_error(
@@ -586,8 +586,8 @@ create or replace package body at_type is
     is
         l_int pls_integer;
     begin
-        l_int := to_number(p);
-        if l_int != to_number(p) then
+        l_int := standard.to_number(p);
+        if l_int != standard.to_number(p) then
             raise value_error;
         end if;
         return l_int;
@@ -656,7 +656,7 @@ create or replace package body at_type is
     ) return timestamp
     is
     begin
-        return to_timestamp(p, p_format);
+        return standard.to_timestamp(p, p_format);
     exception
         when others then
             raise_application_error(
@@ -678,7 +678,7 @@ create or replace package body at_type is
     ) return timestamp with time zone
     is
     begin
-        return to_timestamp_tz(p, p_format);
+        return standard.to_timestamp_tz(p, p_format);
     exception
         when others then
             raise_application_error(
@@ -700,7 +700,7 @@ create or replace package body at_type is
     ) return number
     is
     begin
-        return to_number(p);
+        return standard.to_number(p);
     exception
         when value_error then
             return p_default;
@@ -713,8 +713,8 @@ create or replace package body at_type is
     is
         l_int pls_integer;
     begin
-        l_int := to_number(p);
-        if l_int != to_number(p) then
+        l_int := standard.to_number(p);
+        if l_int != standard.to_number(p) then
             return p_default;
         end if;
         return l_int;
@@ -881,7 +881,7 @@ create or replace package body at_type is
         return l_clob;
     end blob_to_clob;
 
-    -- Return BLOB created from the p_Òlob —LOB.
+    -- Return BLOB created from the p_—Ålob –°LOB.
     -- When no longer needed remember to free the CLOB with dbms_lob.freetemporary(l_blob).
     function clob_to_blob(
         p_clob clob,

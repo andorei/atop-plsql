@@ -26,8 +26,36 @@ THE SOFTWARE.
 ********************************************************************************
 */
 
+    -- Enrich p_message with p1 .. p9
+    function f(
+        p_message varchar2,
+        p1 varchar2,
+        p2 varchar2 default null,
+        p3 varchar2 default null,
+        p4 varchar2 default null,
+        p5 varchar2 default null,
+        p6 varchar2 default null,
+        p7 varchar2 default null,
+        p8 varchar2 default null,
+        p9 varchar2 default null
+    ) return varchar2;
+
     -- Shortcut for dbms_output.put_line.
     procedure p(p_message varchar2);
+
+    -- Print out p_message enriched with p1 .. p9
+    procedure p(
+        p_message varchar2,
+        p1 varchar2,
+        p2 varchar2 default null,
+        p3 varchar2 default null,
+        p4 varchar2 default null,
+        p5 varchar2 default null,
+        p6 varchar2 default null,
+        p7 varchar2 default null,
+        p8 varchar2 default null,
+        p9 varchar2 default null
+    );
 
     -- Print header.
     procedure h(p_header varchar2);
@@ -103,7 +131,8 @@ THE SOFTWARE.
         p_colnames at_varchars,
         p_header boolean default true,
         p_nls_lang varchar2 default userenv('language'),
-        p_safe_html boolean default false
+        p_safe_html boolean default false,
+        p_table_css_class varchar2 default null
     );
 
     -- Get p_cursor rows and output them as html table to file p_file in p_dir.
@@ -193,11 +222,67 @@ create or replace package body at_out is
     c_to_file constant varchar2(5) := 'file';
     c_to_array constant varchar2(5) := 'array';
 
+    -- Enrich p_message with p1 .. p9
+    function f(
+        p_message varchar2,
+        p1 varchar2,
+        p2 varchar2 default null,
+        p3 varchar2 default null,
+        p4 varchar2 default null,
+        p5 varchar2 default null,
+        p6 varchar2 default null,
+        p7 varchar2 default null,
+        p8 varchar2 default null,
+        p9 varchar2 default null
+    ) return varchar2
+    is
+    begin
+        return
+            case
+                when p2 is null then
+                    replace(p_message, ':1', p1)
+                when p3 is null then
+                    replace(replace(p_message, ':1', p1), ':2', p2)
+                when p4 is null then
+                    replace(replace(replace(p_message, ':1', p1), ':2', p2), ':3', p3)
+                when p5 is null then
+                    replace(replace(replace(replace(p_message, ':1', p1), ':2', p2), ':3', p3), ':4', p4)
+                when p6 is null then
+                    replace(replace(replace(replace(replace(p_message, ':1', p1), ':2', p2), ':3', p3), ':4', p4), ':5', p5)
+                when p7 is null then
+                    replace(replace(replace(replace(replace(replace(p_message, ':1', p1), ':2', p2), ':3', p3), ':4', p4), ':5', p5), ':6', p6)
+                when p8 is null then
+                    replace(replace(replace(replace(replace(replace(replace(p_message, ':1', p1), ':2', p2), ':3', p3), ':4', p4), ':5', p5), ':6', p6), ':7', p7)
+                when p9 is null then
+                    replace(replace(replace(replace(replace(replace(replace(replace(p_message, ':1', p1), ':2', p2), ':3', p3), ':4', p4), ':5', p5), ':6', p6), ':7', p7), ':8', p8)
+                else
+                    replace(replace(replace(replace(replace(replace(replace(replace(replace(p_message, ':1', p1), ':2', p2), ':3', p3), ':4', p4), ':5', p5), ':6', p6), ':7', p7), ':8', p8), ':9', p9)
+            end
+        ;
+    end f;
+
     -- Shortcut for dbms_output.put_line
     procedure p(p_message varchar2)
     is
     begin
         dbms_output.put_line(p_message);
+    end p;
+
+    -- Print out p_message enriched with p1 .. p9
+    procedure p(
+        p_message varchar2,
+        p1 varchar2,
+        p2 varchar2 default null,
+        p3 varchar2 default null,
+        p4 varchar2 default null,
+        p5 varchar2 default null,
+        p6 varchar2 default null,
+        p7 varchar2 default null,
+        p8 varchar2 default null,
+        p9 varchar2 default null
+    ) is
+    begin
+        dbms_output.put_line(f(p_message, p1, p2, p3, p4, p5, p6, p7, p8, p9));                
     end p;
 
     -- Print header.
@@ -661,7 +746,8 @@ create or replace package body at_out is
         p_dir varchar2 default at_env.c_out_dir,
         o_array out nocopy at_type.lvarchars,
         p_header boolean default true,
-        p_safe_html boolean default false
+        p_safe_html boolean default false,
+        p_table_css_class varchar2 default null
     ) is
         l_dsql_cursor pls_integer;
         l_col_count pls_integer;
@@ -748,9 +834,9 @@ create or replace package body at_out is
                             l_colnames(i) := safe_html(l_colnames(i));
                         end loop;
                     end if;
-                    l_line := at_util.joined(l_colnames, '</th><th>', '<table>' || at_env.nl || '<tr><th>', '</th></tr>');
+                    l_line := at_util.joined(l_colnames, '</th><th>', '<table' || case when p_table_css_class is not null then ' class="' || p_table_css_class || '"' end || '>' || at_env.nl || '<tr><th>', '</th></tr>');
                 else
-                    l_line := '<table>';
+                    l_line := '<table' || case when p_table_css_class is not null then ' class="' || p_table_css_class || '"' end || '>';
                 end if;
             when c_as_json then
                 l_line := '[';
@@ -930,7 +1016,8 @@ create or replace package body at_out is
         p_colnames at_varchars,
         p_header boolean default true,
         p_nls_lang varchar2 default userenv('language'),
-        p_safe_html boolean default false
+        p_safe_html boolean default false,
+        p_table_css_class varchar2 default null
     ) is
     begin
         put(
