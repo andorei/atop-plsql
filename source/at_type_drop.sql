@@ -7,9 +7,9 @@ drop type at_row
 /
 
 -- Tables of rows with N varchar2 fileds.
-drop type at_table50
+drop type at_table70
 /
-drop type at_table40
+drop type at_table50
 /
 drop type at_table30
 /
@@ -19,9 +19,9 @@ drop type at_table10
 /
 
 -- Rows with N varchar2 fileds.
-drop type at_row50
+drop type at_row70
 /
-drop type at_row40
+drop type at_row50
 /
 drop type at_row30
 /
