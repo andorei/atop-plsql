@@ -3,7 +3,7 @@ create or replace package at_out is
     Utilities to retrieve and output data.
 
 ********************************************************************************
-Copyright (C) 2018, 2020 by Andrei Trofimov
+Copyright (C) 2018-2022 by Andrei Trofimov
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
