@@ -236,28 +236,28 @@ create or replace package body at_out is
         p9 varchar2 default null
     ) return varchar2
     is
+        nul char(6) := '<null>';
     begin
         return
-            case
-                when p2 is null then
-                    replace(p_message, ':1', p1)
-                when p3 is null then
-                    replace(replace(p_message, ':1', p1), ':2', p2)
-                when p4 is null then
-                    replace(replace(replace(p_message, ':1', p1), ':2', p2), ':3', p3)
-                when p5 is null then
-                    replace(replace(replace(replace(p_message, ':1', p1), ':2', p2), ':3', p3), ':4', p4)
-                when p6 is null then
-                    replace(replace(replace(replace(replace(p_message, ':1', p1), ':2', p2), ':3', p3), ':4', p4), ':5', p5)
-                when p7 is null then
-                    replace(replace(replace(replace(replace(replace(p_message, ':1', p1), ':2', p2), ':3', p3), ':4', p4), ':5', p5), ':6', p6)
-                when p8 is null then
-                    replace(replace(replace(replace(replace(replace(replace(p_message, ':1', p1), ':2', p2), ':3', p3), ':4', p4), ':5', p5), ':6', p6), ':7', p7)
-                when p9 is null then
-                    replace(replace(replace(replace(replace(replace(replace(replace(p_message, ':1', p1), ':2', p2), ':3', p3), ':4', p4), ':5', p5), ':6', p6), ':7', p7), ':8', p8)
-                else
-                    replace(replace(replace(replace(replace(replace(replace(replace(replace(p_message, ':1', p1), ':2', p2), ':3', p3), ':4', p4), ':5', p5), ':6', p6), ':7', p7), ':8', p8), ':9', p9)
-            end
+            replace(
+                replace(
+                    replace(
+                        replace(
+                            replace(
+                                replace(
+                                    replace(
+                                        replace(
+                                            replace(
+                                                p_message, ':1', nvl(p1, nul)
+                                            ), ':2', nvl(p2, nul)
+                                        ), ':3', nvl(p3, nul)
+                                    ), ':4', nvl(p4, nul)
+                                ), ':5', nvl(p5, nul)
+                            ), ':6', nvl(p6, nul)
+                        ), ':7', nvl(p7, nul)
+                    ), ':8', nvl(p8, nul)
+                ), ':9', nvl(p9, nul)
+            )
         ;
     end f;
 

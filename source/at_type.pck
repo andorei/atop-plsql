@@ -3,7 +3,7 @@ create or replace package at_type is
     Define useful types and related utilities.
 
 ********************************************************************************
-Copyright (C) 2017-2020 by Andrei Trofimov
+Copyright (C) 2017-2022 by Andrei Trofimov
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -51,108 +51,145 @@ THE SOFTWARE.
 
     -- Create and initialize at_row object.
     -- The alternative would be to have 99 constructors for at_row.
-    function  to_at_row(
-        c1 varchar2,
-        c2 varchar2 default null,
-        c3 varchar2 default null,
-        c4 varchar2 default null,
-        c5 varchar2 default null,
-        c6 varchar2 default null,
-        c7 varchar2 default null,
-        c8 varchar2 default null,
-        c9 varchar2 default null,
-        c10 varchar2 default null,
-        c11 varchar2 default null,
-        c12 varchar2 default null,
-        c13 varchar2 default null,
-        c14 varchar2 default null,
-        c15 varchar2 default null,
-        c16 varchar2 default null,
-        c17 varchar2 default null,
-        c18 varchar2 default null,
-        c19 varchar2 default null,
-        c20 varchar2 default null,
-        c21 varchar2 default null,
-        c22 varchar2 default null,
-        c23 varchar2 default null,
-        c24 varchar2 default null,
-        c25 varchar2 default null,
-        c26 varchar2 default null,
-        c27 varchar2 default null,
-        c28 varchar2 default null,
-        c29 varchar2 default null,
-        c30 varchar2 default null,
-        c31 varchar2 default null,
-        c32 varchar2 default null,
-        c33 varchar2 default null,
-        c34 varchar2 default null,
-        c35 varchar2 default null,
-        c36 varchar2 default null,
-        c37 varchar2 default null,
-        c38 varchar2 default null,
-        c39 varchar2 default null,
-        c40 varchar2 default null,
-        c41 varchar2 default null,
-        c42 varchar2 default null,
-        c43 varchar2 default null,
-        c44 varchar2 default null,
-        c45 varchar2 default null,
-        c46 varchar2 default null,
-        c47 varchar2 default null,
-        c48 varchar2 default null,
-        c49 varchar2 default null,
-        c50 varchar2 default null,
-        c51 varchar2 default null,
-        c52 varchar2 default null,
-        c53 varchar2 default null,
-        c54 varchar2 default null,
-        c55 varchar2 default null,
-        c56 varchar2 default null,
-        c57 varchar2 default null,
-        c58 varchar2 default null,
-        c59 varchar2 default null,
-        c60 varchar2 default null,
-        c61 varchar2 default null,
-        c62 varchar2 default null,
-        c63 varchar2 default null,
-        c64 varchar2 default null,
-        c65 varchar2 default null,
-        c66 varchar2 default null,
-        c67 varchar2 default null,
-        c68 varchar2 default null,
-        c69 varchar2 default null,
-        c70 varchar2 default null,
-        c71 varchar2 default null,
-        c72 varchar2 default null,
-        c73 varchar2 default null,
-        c74 varchar2 default null,
-        c75 varchar2 default null,
-        c76 varchar2 default null,
-        c77 varchar2 default null,
-        c78 varchar2 default null,
-        c79 varchar2 default null,
-        c80 varchar2 default null,
-        c81 varchar2 default null,
-        c82 varchar2 default null,
-        c83 varchar2 default null,
-        c84 varchar2 default null,
-        c85 varchar2 default null,
-        c86 varchar2 default null,
-        c87 varchar2 default null,
-        c88 varchar2 default null,
-        c89 varchar2 default null,
-        c90 varchar2 default null,
-        c91 varchar2 default null,
-        c92 varchar2 default null,
-        c93 varchar2 default null,
-        c94 varchar2 default null,
-        c95 varchar2 default null,
-        c96 varchar2 default null,
-        c97 varchar2 default null,
-        c98 varchar2 default null,
-        c99 varchar2 default null,
-        c100 varchar2 default null
+    function to_at_row(
+        c1 varchar2, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
+        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null,
+        c11 varchar2 default null, c12 varchar2 default null, c13 varchar2 default null, c14 varchar2 default null, c15 varchar2 default null,
+        c16 varchar2 default null, c17 varchar2 default null, c18 varchar2 default null, c19 varchar2 default null, c20 varchar2 default null,
+        c21 varchar2 default null, c22 varchar2 default null, c23 varchar2 default null, c24 varchar2 default null, c25 varchar2 default null,
+        c26 varchar2 default null, c27 varchar2 default null, c28 varchar2 default null, c29 varchar2 default null, c30 varchar2 default null,
+        c31 varchar2 default null, c32 varchar2 default null, c33 varchar2 default null, c34 varchar2 default null, c35 varchar2 default null,
+        c36 varchar2 default null, c37 varchar2 default null, c38 varchar2 default null, c39 varchar2 default null, c40 varchar2 default null,
+        c41 varchar2 default null, c42 varchar2 default null, c43 varchar2 default null, c44 varchar2 default null, c45 varchar2 default null,
+        c46 varchar2 default null, c47 varchar2 default null, c48 varchar2 default null, c49 varchar2 default null, c50 varchar2 default null,
+        c51 varchar2 default null, c52 varchar2 default null, c53 varchar2 default null, c54 varchar2 default null, c55 varchar2 default null,
+        c56 varchar2 default null, c57 varchar2 default null, c58 varchar2 default null, c59 varchar2 default null, c60 varchar2 default null,
+        c61 varchar2 default null, c62 varchar2 default null, c63 varchar2 default null, c64 varchar2 default null, c65 varchar2 default null,
+        c66 varchar2 default null, c67 varchar2 default null, c68 varchar2 default null, c69 varchar2 default null, c70 varchar2 default null,
+        c71 varchar2 default null, c72 varchar2 default null, c73 varchar2 default null, c74 varchar2 default null, c75 varchar2 default null,
+        c76 varchar2 default null, c77 varchar2 default null, c78 varchar2 default null, c79 varchar2 default null, c80 varchar2 default null,
+        c81 varchar2 default null, c82 varchar2 default null, c83 varchar2 default null, c84 varchar2 default null, c85 varchar2 default null,
+        c86 varchar2 default null, c87 varchar2 default null, c88 varchar2 default null, c89 varchar2 default null, c90 varchar2 default null,
+        c91 varchar2 default null, c92 varchar2 default null, c93 varchar2 default null, c94 varchar2 default null, c95 varchar2 default null,
+        c96 varchar2 default null, c97 varchar2 default null, c98 varchar2 default null, c99 varchar2 default null, c100 varchar2 default null
     ) return at_row;
+
+    function to_at_row90(
+        c1 varchar2, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
+        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null,
+        c11 varchar2 default null, c12 varchar2 default null, c13 varchar2 default null, c14 varchar2 default null, c15 varchar2 default null,
+        c16 varchar2 default null, c17 varchar2 default null, c18 varchar2 default null, c19 varchar2 default null, c20 varchar2 default null,
+        c21 varchar2 default null, c22 varchar2 default null, c23 varchar2 default null, c24 varchar2 default null, c25 varchar2 default null,
+        c26 varchar2 default null, c27 varchar2 default null, c28 varchar2 default null, c29 varchar2 default null, c30 varchar2 default null,
+        c31 varchar2 default null, c32 varchar2 default null, c33 varchar2 default null, c34 varchar2 default null, c35 varchar2 default null,
+        c36 varchar2 default null, c37 varchar2 default null, c38 varchar2 default null, c39 varchar2 default null, c40 varchar2 default null,
+        c41 varchar2 default null, c42 varchar2 default null, c43 varchar2 default null, c44 varchar2 default null, c45 varchar2 default null,
+        c46 varchar2 default null, c47 varchar2 default null, c48 varchar2 default null, c49 varchar2 default null, c50 varchar2 default null,
+        c51 varchar2 default null, c52 varchar2 default null, c53 varchar2 default null, c54 varchar2 default null, c55 varchar2 default null,
+        c56 varchar2 default null, c57 varchar2 default null, c58 varchar2 default null, c59 varchar2 default null, c60 varchar2 default null,
+        c61 varchar2 default null, c62 varchar2 default null, c63 varchar2 default null, c64 varchar2 default null, c65 varchar2 default null,
+        c66 varchar2 default null, c67 varchar2 default null, c68 varchar2 default null, c69 varchar2 default null, c70 varchar2 default null,
+        c71 varchar2 default null, c72 varchar2 default null, c73 varchar2 default null, c74 varchar2 default null, c75 varchar2 default null,
+        c76 varchar2 default null, c77 varchar2 default null, c78 varchar2 default null, c79 varchar2 default null, c80 varchar2 default null,
+        c81 varchar2 default null, c82 varchar2 default null, c83 varchar2 default null, c84 varchar2 default null, c85 varchar2 default null,
+        c86 varchar2 default null, c87 varchar2 default null, c88 varchar2 default null, c89 varchar2 default null, c90 varchar2 default null
+    ) return at_row90;
+
+    function to_at_row80(
+        c1 varchar2, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
+        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null,
+        c11 varchar2 default null, c12 varchar2 default null, c13 varchar2 default null, c14 varchar2 default null, c15 varchar2 default null,
+        c16 varchar2 default null, c17 varchar2 default null, c18 varchar2 default null, c19 varchar2 default null, c20 varchar2 default null,
+        c21 varchar2 default null, c22 varchar2 default null, c23 varchar2 default null, c24 varchar2 default null, c25 varchar2 default null,
+        c26 varchar2 default null, c27 varchar2 default null, c28 varchar2 default null, c29 varchar2 default null, c30 varchar2 default null,
+        c31 varchar2 default null, c32 varchar2 default null, c33 varchar2 default null, c34 varchar2 default null, c35 varchar2 default null,
+        c36 varchar2 default null, c37 varchar2 default null, c38 varchar2 default null, c39 varchar2 default null, c40 varchar2 default null,
+        c41 varchar2 default null, c42 varchar2 default null, c43 varchar2 default null, c44 varchar2 default null, c45 varchar2 default null,
+        c46 varchar2 default null, c47 varchar2 default null, c48 varchar2 default null, c49 varchar2 default null, c50 varchar2 default null,
+        c51 varchar2 default null, c52 varchar2 default null, c53 varchar2 default null, c54 varchar2 default null, c55 varchar2 default null,
+        c56 varchar2 default null, c57 varchar2 default null, c58 varchar2 default null, c59 varchar2 default null, c60 varchar2 default null,
+        c61 varchar2 default null, c62 varchar2 default null, c63 varchar2 default null, c64 varchar2 default null, c65 varchar2 default null,
+        c66 varchar2 default null, c67 varchar2 default null, c68 varchar2 default null, c69 varchar2 default null, c70 varchar2 default null,
+        c71 varchar2 default null, c72 varchar2 default null, c73 varchar2 default null, c74 varchar2 default null, c75 varchar2 default null,
+        c76 varchar2 default null, c77 varchar2 default null, c78 varchar2 default null, c79 varchar2 default null, c80 varchar2 default null
+    ) return at_row80;
+
+    function to_at_row70(
+        c1 varchar2, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
+        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null,
+        c11 varchar2 default null, c12 varchar2 default null, c13 varchar2 default null, c14 varchar2 default null, c15 varchar2 default null,
+        c16 varchar2 default null, c17 varchar2 default null, c18 varchar2 default null, c19 varchar2 default null, c20 varchar2 default null,
+        c21 varchar2 default null, c22 varchar2 default null, c23 varchar2 default null, c24 varchar2 default null, c25 varchar2 default null,
+        c26 varchar2 default null, c27 varchar2 default null, c28 varchar2 default null, c29 varchar2 default null, c30 varchar2 default null,
+        c31 varchar2 default null, c32 varchar2 default null, c33 varchar2 default null, c34 varchar2 default null, c35 varchar2 default null,
+        c36 varchar2 default null, c37 varchar2 default null, c38 varchar2 default null, c39 varchar2 default null, c40 varchar2 default null,
+        c41 varchar2 default null, c42 varchar2 default null, c43 varchar2 default null, c44 varchar2 default null, c45 varchar2 default null,
+        c46 varchar2 default null, c47 varchar2 default null, c48 varchar2 default null, c49 varchar2 default null, c50 varchar2 default null,
+        c51 varchar2 default null, c52 varchar2 default null, c53 varchar2 default null, c54 varchar2 default null, c55 varchar2 default null,
+        c56 varchar2 default null, c57 varchar2 default null, c58 varchar2 default null, c59 varchar2 default null, c60 varchar2 default null,
+        c61 varchar2 default null, c62 varchar2 default null, c63 varchar2 default null, c64 varchar2 default null, c65 varchar2 default null,
+        c66 varchar2 default null, c67 varchar2 default null, c68 varchar2 default null, c69 varchar2 default null, c70 varchar2 default null
+    ) return at_row70;
+
+    function to_at_row60(
+        c1 varchar2, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
+        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null,
+        c11 varchar2 default null, c12 varchar2 default null, c13 varchar2 default null, c14 varchar2 default null, c15 varchar2 default null,
+        c16 varchar2 default null, c17 varchar2 default null, c18 varchar2 default null, c19 varchar2 default null, c20 varchar2 default null,
+        c21 varchar2 default null, c22 varchar2 default null, c23 varchar2 default null, c24 varchar2 default null, c25 varchar2 default null,
+        c26 varchar2 default null, c27 varchar2 default null, c28 varchar2 default null, c29 varchar2 default null, c30 varchar2 default null,
+        c31 varchar2 default null, c32 varchar2 default null, c33 varchar2 default null, c34 varchar2 default null, c35 varchar2 default null,
+        c36 varchar2 default null, c37 varchar2 default null, c38 varchar2 default null, c39 varchar2 default null, c40 varchar2 default null,
+        c41 varchar2 default null, c42 varchar2 default null, c43 varchar2 default null, c44 varchar2 default null, c45 varchar2 default null,
+        c46 varchar2 default null, c47 varchar2 default null, c48 varchar2 default null, c49 varchar2 default null, c50 varchar2 default null,
+        c51 varchar2 default null, c52 varchar2 default null, c53 varchar2 default null, c54 varchar2 default null, c55 varchar2 default null,
+        c56 varchar2 default null, c57 varchar2 default null, c58 varchar2 default null, c59 varchar2 default null, c60 varchar2 default null
+    ) return at_row60;
+
+    function to_at_row50(
+        c1 varchar2, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
+        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null,
+        c11 varchar2 default null, c12 varchar2 default null, c13 varchar2 default null, c14 varchar2 default null, c15 varchar2 default null,
+        c16 varchar2 default null, c17 varchar2 default null, c18 varchar2 default null, c19 varchar2 default null, c20 varchar2 default null,
+        c21 varchar2 default null, c22 varchar2 default null, c23 varchar2 default null, c24 varchar2 default null, c25 varchar2 default null,
+        c26 varchar2 default null, c27 varchar2 default null, c28 varchar2 default null, c29 varchar2 default null, c30 varchar2 default null,
+        c31 varchar2 default null, c32 varchar2 default null, c33 varchar2 default null, c34 varchar2 default null, c35 varchar2 default null,
+        c36 varchar2 default null, c37 varchar2 default null, c38 varchar2 default null, c39 varchar2 default null, c40 varchar2 default null,
+        c41 varchar2 default null, c42 varchar2 default null, c43 varchar2 default null, c44 varchar2 default null, c45 varchar2 default null,
+        c46 varchar2 default null, c47 varchar2 default null, c48 varchar2 default null, c49 varchar2 default null, c50 varchar2 default null
+    ) return at_row50;
+
+    function to_at_row40(
+        c1 varchar2, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
+        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null,
+        c11 varchar2 default null, c12 varchar2 default null, c13 varchar2 default null, c14 varchar2 default null, c15 varchar2 default null,
+        c16 varchar2 default null, c17 varchar2 default null, c18 varchar2 default null, c19 varchar2 default null, c20 varchar2 default null,
+        c21 varchar2 default null, c22 varchar2 default null, c23 varchar2 default null, c24 varchar2 default null, c25 varchar2 default null,
+        c26 varchar2 default null, c27 varchar2 default null, c28 varchar2 default null, c29 varchar2 default null, c30 varchar2 default null,
+        c31 varchar2 default null, c32 varchar2 default null, c33 varchar2 default null, c34 varchar2 default null, c35 varchar2 default null,
+        c36 varchar2 default null, c37 varchar2 default null, c38 varchar2 default null, c39 varchar2 default null, c40 varchar2 default null
+    ) return at_row40;
+
+    function to_at_row30(
+        c1 varchar2, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
+        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null,
+        c11 varchar2 default null, c12 varchar2 default null, c13 varchar2 default null, c14 varchar2 default null, c15 varchar2 default null,
+        c16 varchar2 default null, c17 varchar2 default null, c18 varchar2 default null, c19 varchar2 default null, c20 varchar2 default null,
+        c21 varchar2 default null, c22 varchar2 default null, c23 varchar2 default null, c24 varchar2 default null, c25 varchar2 default null,
+        c26 varchar2 default null, c27 varchar2 default null, c28 varchar2 default null, c29 varchar2 default null, c30 varchar2 default null
+    ) return at_row30;
+
+    function to_at_row20(
+        c1 varchar2, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
+        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null,
+        c11 varchar2 default null, c12 varchar2 default null, c13 varchar2 default null, c14 varchar2 default null, c15 varchar2 default null,
+        c16 varchar2 default null, c17 varchar2 default null, c18 varchar2 default null, c19 varchar2 default null, c20 varchar2 default null
+    ) return at_row20;
+
+    function to_at_row10(
+        c1 varchar2, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
+        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null
+    ) return at_row10;
 
     -- Conversion from 1 to 10 assosiative arrays to SQL nested table at_table10.
     function to_at_table10(
@@ -338,106 +375,26 @@ create or replace package body at_type is
     -- Create and initialize at_row object.
     -- The alternative would be to have 99 constructors for at_row.
     function to_at_row(
-        c1 varchar2,
-        c2 varchar2 default null,
-        c3 varchar2 default null,
-        c4 varchar2 default null,
-        c5 varchar2 default null,
-        c6 varchar2 default null,
-        c7 varchar2 default null,
-        c8 varchar2 default null,
-        c9 varchar2 default null,
-        c10 varchar2 default null,
-        c11 varchar2 default null,
-        c12 varchar2 default null,
-        c13 varchar2 default null,
-        c14 varchar2 default null,
-        c15 varchar2 default null,
-        c16 varchar2 default null,
-        c17 varchar2 default null,
-        c18 varchar2 default null,
-        c19 varchar2 default null,
-        c20 varchar2 default null,
-        c21 varchar2 default null,
-        c22 varchar2 default null,
-        c23 varchar2 default null,
-        c24 varchar2 default null,
-        c25 varchar2 default null,
-        c26 varchar2 default null,
-        c27 varchar2 default null,
-        c28 varchar2 default null,
-        c29 varchar2 default null,
-        c30 varchar2 default null,
-        c31 varchar2 default null,
-        c32 varchar2 default null,
-        c33 varchar2 default null,
-        c34 varchar2 default null,
-        c35 varchar2 default null,
-        c36 varchar2 default null,
-        c37 varchar2 default null,
-        c38 varchar2 default null,
-        c39 varchar2 default null,
-        c40 varchar2 default null,
-        c41 varchar2 default null,
-        c42 varchar2 default null,
-        c43 varchar2 default null,
-        c44 varchar2 default null,
-        c45 varchar2 default null,
-        c46 varchar2 default null,
-        c47 varchar2 default null,
-        c48 varchar2 default null,
-        c49 varchar2 default null,
-        c50 varchar2 default null,
-        c51 varchar2 default null,
-        c52 varchar2 default null,
-        c53 varchar2 default null,
-        c54 varchar2 default null,
-        c55 varchar2 default null,
-        c56 varchar2 default null,
-        c57 varchar2 default null,
-        c58 varchar2 default null,
-        c59 varchar2 default null,
-        c60 varchar2 default null,
-        c61 varchar2 default null,
-        c62 varchar2 default null,
-        c63 varchar2 default null,
-        c64 varchar2 default null,
-        c65 varchar2 default null,
-        c66 varchar2 default null,
-        c67 varchar2 default null,
-        c68 varchar2 default null,
-        c69 varchar2 default null,
-        c70 varchar2 default null,
-        c71 varchar2 default null,
-        c72 varchar2 default null,
-        c73 varchar2 default null,
-        c74 varchar2 default null,
-        c75 varchar2 default null,
-        c76 varchar2 default null,
-        c77 varchar2 default null,
-        c78 varchar2 default null,
-        c79 varchar2 default null,
-        c80 varchar2 default null,
-        c81 varchar2 default null,
-        c82 varchar2 default null,
-        c83 varchar2 default null,
-        c84 varchar2 default null,
-        c85 varchar2 default null,
-        c86 varchar2 default null,
-        c87 varchar2 default null,
-        c88 varchar2 default null,
-        c89 varchar2 default null,
-        c90 varchar2 default null,
-        c91 varchar2 default null,
-        c92 varchar2 default null,
-        c93 varchar2 default null,
-        c94 varchar2 default null,
-        c95 varchar2 default null,
-        c96 varchar2 default null,
-        c97 varchar2 default null,
-        c98 varchar2 default null,
-        c99 varchar2 default null,
-        c100 varchar2 default null
+        c1 varchar2, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
+        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null,
+        c11 varchar2 default null, c12 varchar2 default null, c13 varchar2 default null, c14 varchar2 default null, c15 varchar2 default null,
+        c16 varchar2 default null, c17 varchar2 default null, c18 varchar2 default null, c19 varchar2 default null, c20 varchar2 default null,
+        c21 varchar2 default null, c22 varchar2 default null, c23 varchar2 default null, c24 varchar2 default null, c25 varchar2 default null,
+        c26 varchar2 default null, c27 varchar2 default null, c28 varchar2 default null, c29 varchar2 default null, c30 varchar2 default null,
+        c31 varchar2 default null, c32 varchar2 default null, c33 varchar2 default null, c34 varchar2 default null, c35 varchar2 default null,
+        c36 varchar2 default null, c37 varchar2 default null, c38 varchar2 default null, c39 varchar2 default null, c40 varchar2 default null,
+        c41 varchar2 default null, c42 varchar2 default null, c43 varchar2 default null, c44 varchar2 default null, c45 varchar2 default null,
+        c46 varchar2 default null, c47 varchar2 default null, c48 varchar2 default null, c49 varchar2 default null, c50 varchar2 default null,
+        c51 varchar2 default null, c52 varchar2 default null, c53 varchar2 default null, c54 varchar2 default null, c55 varchar2 default null,
+        c56 varchar2 default null, c57 varchar2 default null, c58 varchar2 default null, c59 varchar2 default null, c60 varchar2 default null,
+        c61 varchar2 default null, c62 varchar2 default null, c63 varchar2 default null, c64 varchar2 default null, c65 varchar2 default null,
+        c66 varchar2 default null, c67 varchar2 default null, c68 varchar2 default null, c69 varchar2 default null, c70 varchar2 default null,
+        c71 varchar2 default null, c72 varchar2 default null, c73 varchar2 default null, c74 varchar2 default null, c75 varchar2 default null,
+        c76 varchar2 default null, c77 varchar2 default null, c78 varchar2 default null, c79 varchar2 default null, c80 varchar2 default null,
+        c81 varchar2 default null, c82 varchar2 default null, c83 varchar2 default null, c84 varchar2 default null, c85 varchar2 default null,
+        c86 varchar2 default null, c87 varchar2 default null, c88 varchar2 default null, c89 varchar2 default null, c90 varchar2 default null,
+        c91 varchar2 default null, c92 varchar2 default null, c93 varchar2 default null, c94 varchar2 default null, c95 varchar2 default null,
+        c96 varchar2 default null, c97 varchar2 default null, c98 varchar2 default null, c99 varchar2 default null, c100 varchar2 default null
     ) return at_row
     is
         l_row at_row := at_row();
@@ -464,6 +421,258 @@ create or replace package body at_type is
         l_row.c96 := c96; l_row.c97 := c97; l_row.c98 := c98; l_row.c99 := c99; l_row.c100 := c100;
         return l_row;
     end to_at_row;
+
+    function to_at_row90(
+        c1 varchar2, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
+        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null,
+        c11 varchar2 default null, c12 varchar2 default null, c13 varchar2 default null, c14 varchar2 default null, c15 varchar2 default null,
+        c16 varchar2 default null, c17 varchar2 default null, c18 varchar2 default null, c19 varchar2 default null, c20 varchar2 default null,
+        c21 varchar2 default null, c22 varchar2 default null, c23 varchar2 default null, c24 varchar2 default null, c25 varchar2 default null,
+        c26 varchar2 default null, c27 varchar2 default null, c28 varchar2 default null, c29 varchar2 default null, c30 varchar2 default null,
+        c31 varchar2 default null, c32 varchar2 default null, c33 varchar2 default null, c34 varchar2 default null, c35 varchar2 default null,
+        c36 varchar2 default null, c37 varchar2 default null, c38 varchar2 default null, c39 varchar2 default null, c40 varchar2 default null,
+        c41 varchar2 default null, c42 varchar2 default null, c43 varchar2 default null, c44 varchar2 default null, c45 varchar2 default null,
+        c46 varchar2 default null, c47 varchar2 default null, c48 varchar2 default null, c49 varchar2 default null, c50 varchar2 default null,
+        c51 varchar2 default null, c52 varchar2 default null, c53 varchar2 default null, c54 varchar2 default null, c55 varchar2 default null,
+        c56 varchar2 default null, c57 varchar2 default null, c58 varchar2 default null, c59 varchar2 default null, c60 varchar2 default null,
+        c61 varchar2 default null, c62 varchar2 default null, c63 varchar2 default null, c64 varchar2 default null, c65 varchar2 default null,
+        c66 varchar2 default null, c67 varchar2 default null, c68 varchar2 default null, c69 varchar2 default null, c70 varchar2 default null,
+        c71 varchar2 default null, c72 varchar2 default null, c73 varchar2 default null, c74 varchar2 default null, c75 varchar2 default null,
+        c76 varchar2 default null, c77 varchar2 default null, c78 varchar2 default null, c79 varchar2 default null, c80 varchar2 default null,
+        c81 varchar2 default null, c82 varchar2 default null, c83 varchar2 default null, c84 varchar2 default null, c85 varchar2 default null,
+        c86 varchar2 default null, c87 varchar2 default null, c88 varchar2 default null, c89 varchar2 default null, c90 varchar2 default null
+    ) return at_row90
+    is
+        l_row at_row90 := at_row90();
+    begin
+        l_row.c1 := c1; l_row.c2 := c2; l_row.c3 := c3; l_row.c4 := c4; l_row.c5 := c5;
+        l_row.c6 := c6; l_row.c7 := c7; l_row.c8 := c8; l_row.c9 := c9; l_row.c10 := c10;
+        l_row.c11 := c11; l_row.c12 := c12; l_row.c13 := c13; l_row.c14 := c14; l_row.c15 := c15;
+        l_row.c16 := c16; l_row.c17 := c17; l_row.c18 := c18; l_row.c19 := c19; l_row.c20 := c20;
+        l_row.c21 := c21; l_row.c22 := c22; l_row.c23 := c23; l_row.c24 := c24; l_row.c25 := c25;
+        l_row.c26 := c26; l_row.c27 := c27; l_row.c28 := c28; l_row.c29 := c29; l_row.c30 := c30;
+        l_row.c31 := c31; l_row.c32 := c32; l_row.c33 := c33; l_row.c34 := c34; l_row.c35 := c35;
+        l_row.c36 := c36; l_row.c37 := c37; l_row.c38 := c38; l_row.c39 := c39; l_row.c40 := c40;
+        l_row.c41 := c41; l_row.c42 := c42; l_row.c43 := c43; l_row.c44 := c44; l_row.c45 := c45;
+        l_row.c46 := c46; l_row.c47 := c47; l_row.c48 := c48; l_row.c49 := c49; l_row.c50 := c50;
+        l_row.c51 := c51; l_row.c52 := c52; l_row.c53 := c53; l_row.c54 := c54; l_row.c55 := c55;
+        l_row.c56 := c56; l_row.c57 := c57; l_row.c58 := c58; l_row.c59 := c59; l_row.c60 := c60;
+        l_row.c61 := c61; l_row.c62 := c62; l_row.c63 := c63; l_row.c64 := c64; l_row.c65 := c65;
+        l_row.c66 := c66; l_row.c67 := c67; l_row.c68 := c68; l_row.c69 := c69; l_row.c70 := c70;
+        l_row.c71 := c71; l_row.c72 := c72; l_row.c73 := c73; l_row.c74 := c74; l_row.c75 := c75;
+        l_row.c76 := c76; l_row.c77 := c77; l_row.c78 := c78; l_row.c79 := c79; l_row.c80 := c80;
+        l_row.c81 := c81; l_row.c82 := c82; l_row.c83 := c83; l_row.c84 := c84; l_row.c85 := c85;
+        l_row.c86 := c86; l_row.c87 := c87; l_row.c88 := c88; l_row.c89 := c89; l_row.c90 := c90;
+        return l_row;
+    end to_at_row90;
+
+    function to_at_row80(
+        c1 varchar2, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
+        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null,
+        c11 varchar2 default null, c12 varchar2 default null, c13 varchar2 default null, c14 varchar2 default null, c15 varchar2 default null,
+        c16 varchar2 default null, c17 varchar2 default null, c18 varchar2 default null, c19 varchar2 default null, c20 varchar2 default null,
+        c21 varchar2 default null, c22 varchar2 default null, c23 varchar2 default null, c24 varchar2 default null, c25 varchar2 default null,
+        c26 varchar2 default null, c27 varchar2 default null, c28 varchar2 default null, c29 varchar2 default null, c30 varchar2 default null,
+        c31 varchar2 default null, c32 varchar2 default null, c33 varchar2 default null, c34 varchar2 default null, c35 varchar2 default null,
+        c36 varchar2 default null, c37 varchar2 default null, c38 varchar2 default null, c39 varchar2 default null, c40 varchar2 default null,
+        c41 varchar2 default null, c42 varchar2 default null, c43 varchar2 default null, c44 varchar2 default null, c45 varchar2 default null,
+        c46 varchar2 default null, c47 varchar2 default null, c48 varchar2 default null, c49 varchar2 default null, c50 varchar2 default null,
+        c51 varchar2 default null, c52 varchar2 default null, c53 varchar2 default null, c54 varchar2 default null, c55 varchar2 default null,
+        c56 varchar2 default null, c57 varchar2 default null, c58 varchar2 default null, c59 varchar2 default null, c60 varchar2 default null,
+        c61 varchar2 default null, c62 varchar2 default null, c63 varchar2 default null, c64 varchar2 default null, c65 varchar2 default null,
+        c66 varchar2 default null, c67 varchar2 default null, c68 varchar2 default null, c69 varchar2 default null, c70 varchar2 default null,
+        c71 varchar2 default null, c72 varchar2 default null, c73 varchar2 default null, c74 varchar2 default null, c75 varchar2 default null,
+        c76 varchar2 default null, c77 varchar2 default null, c78 varchar2 default null, c79 varchar2 default null, c80 varchar2 default null
+    ) return at_row80
+    is
+        l_row at_row80 := at_row80();
+    begin
+        l_row.c1 := c1; l_row.c2 := c2; l_row.c3 := c3; l_row.c4 := c4; l_row.c5 := c5;
+        l_row.c6 := c6; l_row.c7 := c7; l_row.c8 := c8; l_row.c9 := c9; l_row.c10 := c10;
+        l_row.c11 := c11; l_row.c12 := c12; l_row.c13 := c13; l_row.c14 := c14; l_row.c15 := c15;
+        l_row.c16 := c16; l_row.c17 := c17; l_row.c18 := c18; l_row.c19 := c19; l_row.c20 := c20;
+        l_row.c21 := c21; l_row.c22 := c22; l_row.c23 := c23; l_row.c24 := c24; l_row.c25 := c25;
+        l_row.c26 := c26; l_row.c27 := c27; l_row.c28 := c28; l_row.c29 := c29; l_row.c30 := c30;
+        l_row.c31 := c31; l_row.c32 := c32; l_row.c33 := c33; l_row.c34 := c34; l_row.c35 := c35;
+        l_row.c36 := c36; l_row.c37 := c37; l_row.c38 := c38; l_row.c39 := c39; l_row.c40 := c40;
+        l_row.c41 := c41; l_row.c42 := c42; l_row.c43 := c43; l_row.c44 := c44; l_row.c45 := c45;
+        l_row.c46 := c46; l_row.c47 := c47; l_row.c48 := c48; l_row.c49 := c49; l_row.c50 := c50;
+        l_row.c51 := c51; l_row.c52 := c52; l_row.c53 := c53; l_row.c54 := c54; l_row.c55 := c55;
+        l_row.c56 := c56; l_row.c57 := c57; l_row.c58 := c58; l_row.c59 := c59; l_row.c60 := c60;
+        l_row.c61 := c61; l_row.c62 := c62; l_row.c63 := c63; l_row.c64 := c64; l_row.c65 := c65;
+        l_row.c66 := c66; l_row.c67 := c67; l_row.c68 := c68; l_row.c69 := c69; l_row.c70 := c70;
+        l_row.c71 := c71; l_row.c72 := c72; l_row.c73 := c73; l_row.c74 := c74; l_row.c75 := c75;
+        l_row.c76 := c76; l_row.c77 := c77; l_row.c78 := c78; l_row.c79 := c79; l_row.c80 := c80;
+        return l_row;
+    end to_at_row80;
+
+    function to_at_row70(
+        c1 varchar2, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
+        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null,
+        c11 varchar2 default null, c12 varchar2 default null, c13 varchar2 default null, c14 varchar2 default null, c15 varchar2 default null,
+        c16 varchar2 default null, c17 varchar2 default null, c18 varchar2 default null, c19 varchar2 default null, c20 varchar2 default null,
+        c21 varchar2 default null, c22 varchar2 default null, c23 varchar2 default null, c24 varchar2 default null, c25 varchar2 default null,
+        c26 varchar2 default null, c27 varchar2 default null, c28 varchar2 default null, c29 varchar2 default null, c30 varchar2 default null,
+        c31 varchar2 default null, c32 varchar2 default null, c33 varchar2 default null, c34 varchar2 default null, c35 varchar2 default null,
+        c36 varchar2 default null, c37 varchar2 default null, c38 varchar2 default null, c39 varchar2 default null, c40 varchar2 default null,
+        c41 varchar2 default null, c42 varchar2 default null, c43 varchar2 default null, c44 varchar2 default null, c45 varchar2 default null,
+        c46 varchar2 default null, c47 varchar2 default null, c48 varchar2 default null, c49 varchar2 default null, c50 varchar2 default null,
+        c51 varchar2 default null, c52 varchar2 default null, c53 varchar2 default null, c54 varchar2 default null, c55 varchar2 default null,
+        c56 varchar2 default null, c57 varchar2 default null, c58 varchar2 default null, c59 varchar2 default null, c60 varchar2 default null,
+        c61 varchar2 default null, c62 varchar2 default null, c63 varchar2 default null, c64 varchar2 default null, c65 varchar2 default null,
+        c66 varchar2 default null, c67 varchar2 default null, c68 varchar2 default null, c69 varchar2 default null, c70 varchar2 default null
+    ) return at_row70
+    is
+        l_row at_row70 := at_row70();
+    begin
+        l_row.c1 := c1; l_row.c2 := c2; l_row.c3 := c3; l_row.c4 := c4; l_row.c5 := c5;
+        l_row.c6 := c6; l_row.c7 := c7; l_row.c8 := c8; l_row.c9 := c9; l_row.c10 := c10;
+        l_row.c11 := c11; l_row.c12 := c12; l_row.c13 := c13; l_row.c14 := c14; l_row.c15 := c15;
+        l_row.c16 := c16; l_row.c17 := c17; l_row.c18 := c18; l_row.c19 := c19; l_row.c20 := c20;
+        l_row.c21 := c21; l_row.c22 := c22; l_row.c23 := c23; l_row.c24 := c24; l_row.c25 := c25;
+        l_row.c26 := c26; l_row.c27 := c27; l_row.c28 := c28; l_row.c29 := c29; l_row.c30 := c30;
+        l_row.c31 := c31; l_row.c32 := c32; l_row.c33 := c33; l_row.c34 := c34; l_row.c35 := c35;
+        l_row.c36 := c36; l_row.c37 := c37; l_row.c38 := c38; l_row.c39 := c39; l_row.c40 := c40;
+        l_row.c41 := c41; l_row.c42 := c42; l_row.c43 := c43; l_row.c44 := c44; l_row.c45 := c45;
+        l_row.c46 := c46; l_row.c47 := c47; l_row.c48 := c48; l_row.c49 := c49; l_row.c50 := c50;
+        l_row.c51 := c51; l_row.c52 := c52; l_row.c53 := c53; l_row.c54 := c54; l_row.c55 := c55;
+        l_row.c56 := c56; l_row.c57 := c57; l_row.c58 := c58; l_row.c59 := c59; l_row.c60 := c60;
+        l_row.c61 := c61; l_row.c62 := c62; l_row.c63 := c63; l_row.c64 := c64; l_row.c65 := c65;
+        l_row.c66 := c66; l_row.c67 := c67; l_row.c68 := c68; l_row.c69 := c69; l_row.c70 := c70;
+        return l_row;
+    end to_at_row70;
+
+    function to_at_row60(
+        c1 varchar2, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
+        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null,
+        c11 varchar2 default null, c12 varchar2 default null, c13 varchar2 default null, c14 varchar2 default null, c15 varchar2 default null,
+        c16 varchar2 default null, c17 varchar2 default null, c18 varchar2 default null, c19 varchar2 default null, c20 varchar2 default null,
+        c21 varchar2 default null, c22 varchar2 default null, c23 varchar2 default null, c24 varchar2 default null, c25 varchar2 default null,
+        c26 varchar2 default null, c27 varchar2 default null, c28 varchar2 default null, c29 varchar2 default null, c30 varchar2 default null,
+        c31 varchar2 default null, c32 varchar2 default null, c33 varchar2 default null, c34 varchar2 default null, c35 varchar2 default null,
+        c36 varchar2 default null, c37 varchar2 default null, c38 varchar2 default null, c39 varchar2 default null, c40 varchar2 default null,
+        c41 varchar2 default null, c42 varchar2 default null, c43 varchar2 default null, c44 varchar2 default null, c45 varchar2 default null,
+        c46 varchar2 default null, c47 varchar2 default null, c48 varchar2 default null, c49 varchar2 default null, c50 varchar2 default null,
+        c51 varchar2 default null, c52 varchar2 default null, c53 varchar2 default null, c54 varchar2 default null, c55 varchar2 default null,
+        c56 varchar2 default null, c57 varchar2 default null, c58 varchar2 default null, c59 varchar2 default null, c60 varchar2 default null
+    ) return at_row60
+    is
+        l_row at_row60 := at_row60();
+    begin
+        l_row.c1 := c1; l_row.c2 := c2; l_row.c3 := c3; l_row.c4 := c4; l_row.c5 := c5;
+        l_row.c6 := c6; l_row.c7 := c7; l_row.c8 := c8; l_row.c9 := c9; l_row.c10 := c10;
+        l_row.c11 := c11; l_row.c12 := c12; l_row.c13 := c13; l_row.c14 := c14; l_row.c15 := c15;
+        l_row.c16 := c16; l_row.c17 := c17; l_row.c18 := c18; l_row.c19 := c19; l_row.c20 := c20;
+        l_row.c21 := c21; l_row.c22 := c22; l_row.c23 := c23; l_row.c24 := c24; l_row.c25 := c25;
+        l_row.c26 := c26; l_row.c27 := c27; l_row.c28 := c28; l_row.c29 := c29; l_row.c30 := c30;
+        l_row.c31 := c31; l_row.c32 := c32; l_row.c33 := c33; l_row.c34 := c34; l_row.c35 := c35;
+        l_row.c36 := c36; l_row.c37 := c37; l_row.c38 := c38; l_row.c39 := c39; l_row.c40 := c40;
+        l_row.c41 := c41; l_row.c42 := c42; l_row.c43 := c43; l_row.c44 := c44; l_row.c45 := c45;
+        l_row.c46 := c46; l_row.c47 := c47; l_row.c48 := c48; l_row.c49 := c49; l_row.c50 := c50;
+        l_row.c51 := c51; l_row.c52 := c52; l_row.c53 := c53; l_row.c54 := c54; l_row.c55 := c55;
+        l_row.c56 := c56; l_row.c57 := c57; l_row.c58 := c58; l_row.c59 := c59; l_row.c60 := c60;
+        return l_row;
+    end to_at_row60;
+
+    function to_at_row50(
+        c1 varchar2, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
+        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null,
+        c11 varchar2 default null, c12 varchar2 default null, c13 varchar2 default null, c14 varchar2 default null, c15 varchar2 default null,
+        c16 varchar2 default null, c17 varchar2 default null, c18 varchar2 default null, c19 varchar2 default null, c20 varchar2 default null,
+        c21 varchar2 default null, c22 varchar2 default null, c23 varchar2 default null, c24 varchar2 default null, c25 varchar2 default null,
+        c26 varchar2 default null, c27 varchar2 default null, c28 varchar2 default null, c29 varchar2 default null, c30 varchar2 default null,
+        c31 varchar2 default null, c32 varchar2 default null, c33 varchar2 default null, c34 varchar2 default null, c35 varchar2 default null,
+        c36 varchar2 default null, c37 varchar2 default null, c38 varchar2 default null, c39 varchar2 default null, c40 varchar2 default null,
+        c41 varchar2 default null, c42 varchar2 default null, c43 varchar2 default null, c44 varchar2 default null, c45 varchar2 default null,
+        c46 varchar2 default null, c47 varchar2 default null, c48 varchar2 default null, c49 varchar2 default null, c50 varchar2 default null
+    ) return at_row50
+    is
+        l_row at_row50 := at_row50();
+    begin
+        l_row.c1 := c1; l_row.c2 := c2; l_row.c3 := c3; l_row.c4 := c4; l_row.c5 := c5;
+        l_row.c6 := c6; l_row.c7 := c7; l_row.c8 := c8; l_row.c9 := c9; l_row.c10 := c10;
+        l_row.c11 := c11; l_row.c12 := c12; l_row.c13 := c13; l_row.c14 := c14; l_row.c15 := c15;
+        l_row.c16 := c16; l_row.c17 := c17; l_row.c18 := c18; l_row.c19 := c19; l_row.c20 := c20;
+        l_row.c21 := c21; l_row.c22 := c22; l_row.c23 := c23; l_row.c24 := c24; l_row.c25 := c25;
+        l_row.c26 := c26; l_row.c27 := c27; l_row.c28 := c28; l_row.c29 := c29; l_row.c30 := c30;
+        l_row.c31 := c31; l_row.c32 := c32; l_row.c33 := c33; l_row.c34 := c34; l_row.c35 := c35;
+        l_row.c36 := c36; l_row.c37 := c37; l_row.c38 := c38; l_row.c39 := c39; l_row.c40 := c40;
+        l_row.c41 := c41; l_row.c42 := c42; l_row.c43 := c43; l_row.c44 := c44; l_row.c45 := c45;
+        l_row.c46 := c46; l_row.c47 := c47; l_row.c48 := c48; l_row.c49 := c49; l_row.c50 := c50;
+        return l_row;
+    end to_at_row50;
+
+    function to_at_row40(
+        c1 varchar2, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
+        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null,
+        c11 varchar2 default null, c12 varchar2 default null, c13 varchar2 default null, c14 varchar2 default null, c15 varchar2 default null,
+        c16 varchar2 default null, c17 varchar2 default null, c18 varchar2 default null, c19 varchar2 default null, c20 varchar2 default null,
+        c21 varchar2 default null, c22 varchar2 default null, c23 varchar2 default null, c24 varchar2 default null, c25 varchar2 default null,
+        c26 varchar2 default null, c27 varchar2 default null, c28 varchar2 default null, c29 varchar2 default null, c30 varchar2 default null,
+        c31 varchar2 default null, c32 varchar2 default null, c33 varchar2 default null, c34 varchar2 default null, c35 varchar2 default null,
+        c36 varchar2 default null, c37 varchar2 default null, c38 varchar2 default null, c39 varchar2 default null, c40 varchar2 default null
+    ) return at_row40
+    is
+        l_row at_row40 := at_row40();
+    begin
+        l_row.c1 := c1; l_row.c2 := c2; l_row.c3 := c3; l_row.c4 := c4; l_row.c5 := c5;
+        l_row.c6 := c6; l_row.c7 := c7; l_row.c8 := c8; l_row.c9 := c9; l_row.c10 := c10;
+        l_row.c11 := c11; l_row.c12 := c12; l_row.c13 := c13; l_row.c14 := c14; l_row.c15 := c15;
+        l_row.c16 := c16; l_row.c17 := c17; l_row.c18 := c18; l_row.c19 := c19; l_row.c20 := c20;
+        l_row.c21 := c21; l_row.c22 := c22; l_row.c23 := c23; l_row.c24 := c24; l_row.c25 := c25;
+        l_row.c26 := c26; l_row.c27 := c27; l_row.c28 := c28; l_row.c29 := c29; l_row.c30 := c30;
+        l_row.c31 := c31; l_row.c32 := c32; l_row.c33 := c33; l_row.c34 := c34; l_row.c35 := c35;
+        l_row.c36 := c36; l_row.c37 := c37; l_row.c38 := c38; l_row.c39 := c39; l_row.c40 := c40;
+        return l_row;
+    end to_at_row40;
+
+    function to_at_row30(
+        c1 varchar2, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
+        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null,
+        c11 varchar2 default null, c12 varchar2 default null, c13 varchar2 default null, c14 varchar2 default null, c15 varchar2 default null,
+        c16 varchar2 default null, c17 varchar2 default null, c18 varchar2 default null, c19 varchar2 default null, c20 varchar2 default null,
+        c21 varchar2 default null, c22 varchar2 default null, c23 varchar2 default null, c24 varchar2 default null, c25 varchar2 default null,
+        c26 varchar2 default null, c27 varchar2 default null, c28 varchar2 default null, c29 varchar2 default null, c30 varchar2 default null
+    ) return at_row30
+    is
+        l_row at_row30 := at_row30();
+    begin
+        l_row.c1 := c1; l_row.c2 := c2; l_row.c3 := c3; l_row.c4 := c4; l_row.c5 := c5;
+        l_row.c6 := c6; l_row.c7 := c7; l_row.c8 := c8; l_row.c9 := c9; l_row.c10 := c10;
+        l_row.c11 := c11; l_row.c12 := c12; l_row.c13 := c13; l_row.c14 := c14; l_row.c15 := c15;
+        l_row.c16 := c16; l_row.c17 := c17; l_row.c18 := c18; l_row.c19 := c19; l_row.c20 := c20;
+        l_row.c21 := c21; l_row.c22 := c22; l_row.c23 := c23; l_row.c24 := c24; l_row.c25 := c25;
+        l_row.c26 := c26; l_row.c27 := c27; l_row.c28 := c28; l_row.c29 := c29; l_row.c30 := c30;
+        return l_row;
+    end to_at_row30;
+
+    function to_at_row20(
+        c1 varchar2, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
+        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null,
+        c11 varchar2 default null, c12 varchar2 default null, c13 varchar2 default null, c14 varchar2 default null, c15 varchar2 default null,
+        c16 varchar2 default null, c17 varchar2 default null, c18 varchar2 default null, c19 varchar2 default null, c20 varchar2 default null
+    ) return at_row20
+    is
+        l_row at_row20 := at_row20();
+    begin
+        l_row.c1 := c1; l_row.c2 := c2; l_row.c3 := c3; l_row.c4 := c4; l_row.c5 := c5;
+        l_row.c6 := c6; l_row.c7 := c7; l_row.c8 := c8; l_row.c9 := c9; l_row.c10 := c10;
+        l_row.c11 := c11; l_row.c12 := c12; l_row.c13 := c13; l_row.c14 := c14; l_row.c15 := c15;
+        l_row.c16 := c16; l_row.c17 := c17; l_row.c18 := c18; l_row.c19 := c19; l_row.c20 := c20;
+        return l_row;
+    end to_at_row20;
+
+    function to_at_row10(
+        c1 varchar2, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
+        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null
+    ) return at_row10
+    is
+    begin
+        return
+            at_row10(
+                c1, c2, c3, c4, c5, c6, c7, c8, c9, c10
+            );
+    end to_at_row10;
 
     -- Conversion from 1 to 10 assosiative arrays to SQL nested table at_table10.
     function to_at_table10(
