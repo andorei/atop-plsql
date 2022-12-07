@@ -79,13 +79,6 @@ THE SOFTWARE.
         c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null
     ) return at_row10;
 
-    function to_at_row20(
-        c1 varchar2 default null, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
-        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null,
-        c11 varchar2 default null, c12 varchar2 default null, c13 varchar2 default null, c14 varchar2 default null, c15 varchar2 default null,
-        c16 varchar2 default null, c17 varchar2 default null, c18 varchar2 default null, c19 varchar2 default null, c20 varchar2 default null
-    ) return at_row20;
-
     function to_at_row30(
         c1 varchar2 default null, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
         c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null,
@@ -367,22 +360,6 @@ create or replace package body at_type is
         l_row.c6 := c6; l_row.c7 := c7; l_row.c8 := c8; l_row.c9 := c9; l_row.c10 := c10;
         return l_row;
     end to_at_row10;
-
-    function to_at_row20(
-        c1 varchar2 default null, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,
-        c6 varchar2 default null, c7 varchar2 default null, c8 varchar2 default null, c9 varchar2 default null, c10 varchar2 default null,
-        c11 varchar2 default null, c12 varchar2 default null, c13 varchar2 default null, c14 varchar2 default null, c15 varchar2 default null,
-        c16 varchar2 default null, c17 varchar2 default null, c18 varchar2 default null, c19 varchar2 default null, c20 varchar2 default null
-    ) return at_row20
-    is
-        l_row at_row20 := at_row20();
-    begin
-        l_row.c1 := c1; l_row.c2 := c2; l_row.c3 := c3; l_row.c4 := c4; l_row.c5 := c5;
-        l_row.c6 := c6; l_row.c7 := c7; l_row.c8 := c8; l_row.c9 := c9; l_row.c10 := c10;
-        l_row.c11 := c11; l_row.c12 := c12; l_row.c13 := c13; l_row.c14 := c14; l_row.c15 := c15;
-        l_row.c16 := c16; l_row.c17 := c17; l_row.c18 := c18; l_row.c19 := c19; l_row.c20 := c20;
-        return l_row;
-    end to_at_row20;
 
     function to_at_row30(
         c1 varchar2 default null, c2 varchar2 default null, c3 varchar2 default null, c4 varchar2 default null, c5 varchar2 default null,

@@ -13,8 +13,6 @@ drop type at_table50
 /
 drop type at_table30
 /
-drop type at_table20
-/
 drop type at_table10
 /
 
@@ -24,8 +22,6 @@ drop type at_row70
 drop type at_row50
 /
 drop type at_row30
-/
-drop type at_row20
 /
 drop type at_row10
 /
