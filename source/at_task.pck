@@ -55,7 +55,15 @@ THE SOFTWARE.
 
     -- Run tasks as scheduled.
     -- Should be run periodically (e.g. minutely, or every 10 minutes).
+    -- XXX WHEN DBMS SCHEDULER JOB IS RUN EVERY 1 MINUTE
+    -- XXX THE JOB SOMETIMES (RARELY) EXECUTES HALF A MINUTE LATER
+    -- XXX AND THUS SOME OF THE at_task_'s MAY BE NOT RUN.
+    -- XXX SO USE INSTEAD run PROCEDURE WITH p_minutes PARAMETER.
     procedure run;
+
+    -- run tasks as scheduled
+    -- should be run once every p_minutes
+    procedure run(p_minutes pls_integer);
 
     -- Run task now.
     procedure run_task(
@@ -128,6 +136,10 @@ create or replace package body at_task is
 
     -- run tasks as scheduled
     -- should be run periodically (e.g. minutely, or every 10 minutes)
+    -- XXX WHEN DBMS SCHEDULER JOB IS RUN EVERY 1 MINUTE
+    -- XXX THE JOB SOMETIMES (RARELY) EXECUTES HALF A MINUTE LATER
+    -- XXX AND THUS SOME OF THE at_task_'s MAY BE NOT RUN.
+    -- XXX SO USE INSTEAD run PROCEDURE WITH p_minutes PARAMETER.
     procedure run
     is
         now varchar2(100) := to_char(sysdate, 'mi hh24 dd mm d');
@@ -139,6 +151,53 @@ create or replace package body at_task is
             from at_task_
             where regexp_like(now, schedule)
                 and status != c_task_status_off
+                and systimestamp >= nvl(schedule_start, sysdate - 1)
+                and systimestamp < nvl(schedule_stop, sysdate + 1)
+        ) loop
+            -- provide task name and status arguments if expected
+            l_plsql := replace(r.what, ':1', ''''||r.task_name||'''');
+            l_plsql := replace(l_plsql, ':2', ''''||r.status||'''');
+            -- run task as a scheduler job
+            l_job_name := dbms_scheduler.generate_job_name;
+            dbms_scheduler.create_job(
+                job_name => l_job_name,
+                job_type => 'PLSQL_BLOCK',
+                job_action => 'begin '||rtrim(l_plsql, ';'||at_env.whitespace)||'; end;',
+                enabled => TRUE,
+                comments => r.task_name
+            );
+            -- remember the job name and start time
+            update at_task_
+            set last_when = systimestamp,
+                last_job = l_job_name
+            where task_name = r.task_name
+            ;
+        end loop;
+    end run;
+
+    -- run tasks as scheduled
+    -- should be run once every p_minutes
+    procedure run(p_minutes pls_integer)
+    is
+        l_job_name varchar2(100);
+        l_plsql varchar2(4000);
+    begin
+        for r in (
+            with mi as (
+                select p_minutes mi from dual
+            ), timerange as (
+                select
+                    to_char(
+                        (trunc(sysdate) + mi/(24*60) * floor((sysdate - trunc(sysdate)) / (mi/(24*60)))) - (level - 1)/(24*60)
+                        , 'mi hh24 dd mm d'
+                    ) timepoint
+                from mi
+                connect by level <= mi
+            )
+            select distinct task_name, what, status
+            from at_task_, timerange
+            where regexp_like(timepoint, schedule)
+                and status != 'off'
                 and systimestamp >= nvl(schedule_start, sysdate - 1)
                 and systimestamp < nvl(schedule_stop, sysdate + 1)
         ) loop
