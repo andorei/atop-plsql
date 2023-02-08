@@ -3,7 +3,7 @@ create table at_cdc_ (
     cdc_type   varchar2(10) not null,
     descr      varchar2(4000),
     constraint at_cdc_pk primary key (capture),
-    constraint at_cdc_ck check (cdc_type in ('deltascn', 'orarowscn'))
+    constraint at_cdc_ck check (cdc_type in ('deltascn', 'orarowscn', 'seqn'))
 );
 comment on table at_cdc_ is 'Change data captures';
 comment on column at_cdc_.capture is 'Capture name';

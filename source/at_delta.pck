@@ -3,12 +3,12 @@ create or replace package at_delta is
     Delta streams management API
 
 Changelog
-    2016-08-30 Andrei Trofimov create package
-    2017-03-09 Andrei Trofimov add at_delta_.delta_type
-    2018-04-06 Andrei Trofimov redesign API
+    2016-08-30 Andrei Trofimov Create package
+    2018-04-06 Andrei Trofimov Redesign API
+    2023-01-23 Andrei Trofimov Add seqn capture type
 
 ********************************************************************************
-Copyright (C) 2016-2018 by Andrei Trofimov
+Copyright (C) 2016-2023 by Andrei Trofimov
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,8 @@ THE SOFTWARE.
 
     c_type_deltascn constant varchar2(10) := 'deltascn';
     c_type_orarowscn constant varchar2(10) := 'orarowscn';
-    
+    c_type_seqn constant varchar2(10) := 'seqn';
+
     -- Create CDC table and register it.
     procedure create_capture(
         p_capture at_cdc_.capture%type,
@@ -75,7 +76,7 @@ THE SOFTWARE.
         p_capture at_cdc_.capture%type,
         p_cdc_type at_cdc_.cdc_type%type
     ) return number;
-    
+
     -- Delete utilized rows from CDC tables.
     -- (Create job to run at_delta.purge_cdc daily.)
     procedure purge_cdc;
@@ -87,7 +88,7 @@ create or replace package body at_delta is
     c_capture_prefix constant varchar2(7) := 'AT_CDC_';
     c_view_prefix constant varchar2(7) := 'AT_SVS_';
     c_trigger_postfix constant varchar2(3) := '_AK';
-    
+
     -- Set by %_exists procedures and by other procedures.
     g_capture at_svs_.capture%type;
     g_capture_table varchar2(30);
@@ -126,16 +127,16 @@ create or replace package body at_delta is
         g_client         := upper(p_client);
         g_client_view    := c_view_prefix||g_client;
         g_client_trigger := g_client_view||c_trigger_postfix;
-        
+
         select 1 into l_dummy from user_views where view_name = g_client_view;
         select 1 into l_dummy from user_triggers where trigger_name = g_client_trigger;
-        
+
         return true;
     exception
         when no_data_found then
             return false;
     end client_exists;
-        
+
     -- Set global vars for the client's service and check that service exists.
     function service_exists(
         p_client at_svs_.client%type,
@@ -179,6 +180,18 @@ create or replace package body at_delta is
                     when timestamp with time zone default systimestamp not null
                 ) rowdependencies'
             ;
+        elsif p_type = c_type_seqn then
+            execute immediate
+                'create table '||g_capture_table||' (
+                    oper char not null,
+                    when timestamp with time zone default systimestamp not null,
+                    seqn number not null,
+                    fixn number
+                )'
+            ;
+            execute immediate
+                'create sequence '||g_capture_table||'_seq'
+            ;
         end if;
     end create_capture;
 
@@ -198,7 +211,7 @@ create or replace package body at_delta is
         -- Services may share the same capture.
         select count(*)
         into l_count
-        from at_svs_ 
+        from at_svs_
         where capture = upper(p_capture)
         ;
         if l_count > 0 then
@@ -219,6 +232,9 @@ create or replace package body at_delta is
         end if;
         if l_cdc_type = c_type_deltascn then
             execute immediate 'drop table '||g_capture_table;
+        elsif l_cdc_type = c_type_seqn then
+            execute immediate 'drop table '||g_capture_table;
+            execute immediate 'drop sequence '||g_capture_table||'_seq';
         end if;
     end delete_capture;
 
@@ -235,7 +251,7 @@ create or replace package body at_delta is
         end if;
         execute immediate
             'create or replace view '||g_client_view||' as
-            select service, cdc_type, last_when, last_scn, at_delta.current_scn(svs.capture, cdc_type) curr_scn 
+            select service, svs.capture, cdc_type, last_when, last_scn, at_delta.current_scn(svs.capture, cdc_type) curr_scn
             from at_svs_ svs, at_cdc_ cdc
             where svs.client = '''||g_client||'''
                 and svs.capture = cdc.capture'
@@ -264,9 +280,9 @@ create or replace package body at_delta is
             );
         end if;
         -- The client may still have services.
-        select count(*) 
+        select count(*)
         into l_count
-        from at_svs_ 
+        from at_svs_
         where client = g_client
         ;
         if l_count > 0 then
@@ -277,7 +293,7 @@ create or replace package body at_delta is
         end if;
         execute immediate 'drop view ' || g_client_view;
     end delete_client;
-    
+
     -- Register client's service p_service based on capture.
     procedure create_service(
         p_client at_svs_.client%type,
@@ -326,7 +342,7 @@ create or replace package body at_delta is
             and service = g_service
         ;
     end delete_service;
-    
+
     -- Current change number for the capture.
     function current_scn(
         p_capture at_cdc_.capture%type,
@@ -337,11 +353,15 @@ create or replace package body at_delta is
     begin
         case p_cdc_type
             when c_type_deltascn then
-                execute immediate 
+                execute immediate
                     'select nvl(max(ora_rowscn), 0) from '||c_capture_prefix||p_capture
                     into l_curr_cn;
             when c_type_orarowscn then
                 select current_scn into l_curr_cn from v$database;
+            when c_type_seqn then
+                execute immediate
+                    'select '||c_capture_prefix||p_capture||'_seq.nextval from dual'
+                    into l_curr_cn;
             else
                 l_curr_cn := null;
         end case;

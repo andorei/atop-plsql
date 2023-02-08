@@ -3,11 +3,12 @@ create or replace package at_delta2 is
     For delta client to acknowledge reception of delta.
 
 Changelog
-    2016-08-30 Andrei Trofimov create package
-    2018-04-06 Andrei Trofimov redesign API
+    2016-08-30 Andrei Trofimov Create package
+    2018-04-06 Andrei Trofimov Redesign API
+    2023-01-23 Andrei Trofimov Add get_range procedure
 
 ********************************************************************************
-Copyright (C) 2016-2018 by Andrei Trofimov
+Copyright (C) 2016-2023 by Andrei Trofimov
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +31,14 @@ THE SOFTWARE.
 ********************************************************************************
 */
 
+    -- Get range of change numbers to process.
+    procedure get_range(
+        p_client at_svs_.client%type,
+        p_service at_svs_.service%type,
+        o_last_scn in out number,
+        o_curr_scn in out number
+    );
+
     -- Acknowledge reception of changes with cnum <= p_last_cnum.
     procedure acknowledge(
         p_client at_svs_.client%type,
@@ -40,6 +49,35 @@ THE SOFTWARE.
 end at_delta2;
 /
 create or replace package body at_delta2 is
+
+    -- Get range of change numbers to process.
+    procedure get_range(
+        p_client at_svs_.client%type,
+        p_service at_svs_.service%type,
+        o_last_scn in out number,
+        o_curr_scn in out number
+    ) is
+        c_type_seqn constant varchar2(10) := 'seqn';
+        c_capture_prefix constant varchar2(7) := 'AT_CDC_';
+        l_capture at_cdc_.capture%type;
+        l_cdc_type at_cdc_.cdc_type%type;
+    begin
+        execute immediate
+            'select last_scn, curr_scn, capture, cdc_type
+            from at_svs_'||p_client||'
+            where service = upper(:1)'
+        into o_last_scn, o_curr_scn, l_capture, l_cdc_type
+        using p_service
+        ;
+        if l_cdc_type = c_type_seqn then
+            -- Mark recently registered changes for processing.
+            execute immediate 
+                'update '||c_capture_prefix||l_capture||
+                ' set fixn = :1 where fixn is null'
+            using o_curr_scn
+            ;
+        end if;
+    end get_range;
 
     -- Acknowledge reception of changes with cnum <= p_last_cnum.
     procedure acknowledge(
