@@ -389,6 +389,22 @@ create or replace package body at_delta is
                 commit;
             end if;
         end loop;
+        for r in (
+            select svs.capture, min(last_scn) last_fixn
+            from at_svs_ svs, at_cdc_ cdc
+            where cdc_type = 'seqn'
+                and svs.capture = cdc.capture
+            group by svs.capture
+        ) loop
+            if capture_exists(r.capture) then
+                execute immediate
+                    'delete from ' || g_capture_table ||
+                    ' where fixn <= :last_fixn'
+                using r.last_fixn
+                ;
+                commit;
+            end if;
+        end loop;
     end purge_cdc;
 
 end at_delta;
