@@ -33,7 +33,8 @@ THE SOFTWARE.
     type numbers is table of number index by pls_integer;
     type dates is table of date index by pls_integer;
     type booleans is table of boolean index by pls_integer;
-    type named_varchars is table of varchar2(4000) index by varchar2(30);
+    type named_varchars is table of varchar2(4000) index by varchar2(100);
+    type named_numbers is table of number index by varchar2(100);
 
     -- Empty associative arrays.
     g_empty_lvarchars at_type.lvarchars;

@@ -3,10 +3,11 @@ create or replace package at_rep is
     Reports for administator.
 
 Changelog
-    2018-07-05 Andrei Trofimov create package
+    2018-07-05 Andrei Trofimov Create package.
+    2024-06-18 Andrei Trofimov Add send_log_warnings and send_log_issues.
 
 ********************************************************************************
-Copyright (C) 2018 by Andrei Trofimov
+Copyright (C) 2018, 2024 by Andrei Trofimov
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,8 +33,10 @@ THE SOFTWARE.
     -- Notify on failed tasks.
     procedure send_failed_tasks(p_task_name at_task_.task_name%type);
     
-    -- Notify on errors in log.
+    -- Notify on issues in log.
+    procedure send_logged_issues(p_task_name at_task_.task_name%type, p_kind char default 'e');
     procedure send_logged_errors(p_task_name at_task_.task_name%type);
+    procedure send_logged_warnings(p_task_name at_task_.task_name%type);
     
     -- Notify on weird logins to the database.
     procedure send_weird_logins(
@@ -72,8 +75,8 @@ create or replace package body at_rep is
         close l_cursor;
     end send_failed_tasks;
 
-    -- Notify on errors in log.
-    procedure send_logged_errors(p_task_name at_task_.task_name%type)
+    -- Notify on issues in log.
+    procedure send_logged_issues(p_task_name at_task_.task_name%type, p_kind char default 'e')
     is
         l_cursor sys_refcursor;
         l_previous_id number := at_conf.param(p_task_name, 'previous_id');
@@ -85,12 +88,12 @@ create or replace package body at_rep is
         select when, progname, message, '<pre>'||addinfo||'</pre>'
         from at_log_ atl
         where atl.id between l_previous_id+1 and l_latest_id
-            and kind = 'e'
+            and kind = p_kind
         order by when;
 
         at_mail.send_html_table(
             p_owner => p_task_name,
-            p_subject => 'Errors in log',
+            p_subject => case p_kind when 'e' then 'Errors' when 'w' then 'Warnings' else 'Records' end || ' in Log',
             p_message => null,
             p_cursor => l_cursor,
             p_colnames => at_varchars('WHEN','PROGNAME','MESSAGE','ADDITIONAL_INFO')
@@ -99,7 +102,19 @@ create or replace package body at_rep is
 
         at_conf.set_param(p_task_name, 'previous_id', l_latest_id);
         commit;
-    end send_logged_errors;
+    end send_logged_issues;
+
+    procedure send_logged_errors(p_task_name at_task_.task_name%type)
+    is
+    begin
+        send_logged_issues(p_task_name, 'e');
+    end;
+
+    procedure send_logged_warnings(p_task_name at_task_.task_name%type)
+    is
+    begin
+        send_logged_issues(p_task_name, 'w');
+    end;
 
     -- Notify on weird logins to the database.
     procedure send_weird_logins(

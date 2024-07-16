@@ -31,26 +31,55 @@ THE SOFTWARE.
 ********************************************************************************
 */
 
-    -- Get range of change numbers to process.
+    --
+    -- delta API get-acknowledge
+    --
+    -- 1) Get range of change numbers to process at_delta2.get_range.
+    -- 2) Use o_last_scn and o_curr_scn from step 1) in your select statement to get changes to process.
+    -- 3) Remember the new last processed change number with at_delta2.acknowledge.
+
+    -- Get range of change numbers to process (o_last_scn, o_curr_scn) for client.service.
     procedure get_range(
         p_client at_svs_.client%type,
         p_service at_svs_.service%type,
         o_last_scn in out number,
         o_curr_scn in out number
     );
-
-    -- Acknowledge reception of changes with cnum <= p_last_cnum.
+    -- Acknowledge reception of changes with change numbers <= p_last_scn for client.service.
     procedure acknowledge(
         p_client at_svs_.client%type,
         p_service at_svs_.service%type,
         p_last_scn at_svs_.last_scn%type
     );
 
+    --
+    -- delta API setup-confirm
+    --
+    -- 1) Setup delta context with at_delta2.setup(p_client, p_service).
+    -- 2) Use at_delta2.last_cnum() and at_delta2.curr_cnum() in your select statement (or view) to get changes to process.
+    -- 3) Confirm changes are processed with at_delta2.confirm(p_client, p_service).
+
+    -- Make change numbers to process available through functions last_cnum and curr_cnum.
+    procedure setup(p_client at_svs_.client%type, p_service at_svs_.service%type);
+    -- Get last processed change number for client.service.
+    function last_cnum(p_client at_svs_.client%type, p_service at_svs_.service%type) return number;
+    -- Get current change number for client.service.
+    function curr_cnum(p_client at_svs_.client%type, p_service at_svs_.service%type) return number;
+    -- Confirm reception of changes with change numbers <= curr_cnum(p_client, p_service).
+    procedure confirm(p_client at_svs_.client%type, p_service at_svs_.service%type);
+
 end at_delta2;
 /
 create or replace package body at_delta2 is
 
-    -- Get range of change numbers to process.
+    g_dic_last_cnum at_type.named_numbers;
+    g_dic_curr_cnum at_type.named_numbers;
+
+    --
+    -- delta API get-acknowledge
+    --
+
+    -- Get range of change numbers to process (o_last_scn, o_curr_scn) for client.service.
     procedure get_range(
         p_client at_svs_.client%type,
         p_service at_svs_.service%type,
@@ -79,7 +108,7 @@ create or replace package body at_delta2 is
         end if;
     end get_range;
 
-    -- Acknowledge reception of changes with cnum <= p_last_cnum.
+    -- Acknowledge reception of changes with change numbers <= p_last_scn for client.service.
     procedure acknowledge(
         p_client at_svs_.client%type,
         p_service at_svs_.service%type,
@@ -96,6 +125,52 @@ create or replace package body at_delta2 is
             raise_application_error(-20005, 'Failed to acknowledge: "'||p_client||'", "'||p_service||'"');
         end if;
     end acknowledge;
+
+    --
+    -- delta API setup-confirm
+    --
+
+    -- Make change numbers to process available through functions last_cnum and curr_cnum.
+    procedure setup(
+        p_client at_svs_.client%type,
+        p_service at_svs_.service%type
+    ) is
+        l_last_cnum number;
+        l_curr_cnum number;
+        l_key varchar2(100) := upper(p_client||'.'||p_service);
+    begin
+        get_range(p_client, p_service, l_last_cnum, l_curr_cnum);
+        g_dic_last_cnum(l_key) := l_last_cnum;
+        g_dic_curr_cnum(l_key) := l_curr_cnum;
+    end setup;
+
+    -- Get last processed change number for client.service.
+    function last_cnum(p_client at_svs_.client%type, p_service at_svs_.service%type) return number
+    is
+    begin
+        return g_dic_last_cnum(upper(p_client||'.'||p_service));
+    end last_cnum;
+
+    -- Get current change number for client.service.
+    function curr_cnum(p_client at_svs_.client%type, p_service at_svs_.service%type) return number
+    is
+    begin
+        return g_dic_curr_cnum(upper(p_client||'.'||p_service));
+    end curr_cnum;
+    
+    -- Confirm reception of changes with change numbers <= last_cnum(p_client, p_service).
+    procedure confirm(
+        p_client at_svs_.client%type,
+        p_service at_svs_.service%type
+    ) is
+        l_key varchar2(100) := upper(p_client||'.'||p_service);
+    begin
+        if g_dic_curr_cnum.exists(l_key) then
+            acknowledge(p_client, p_service, g_dic_curr_cnum(l_key));
+        else
+            raise_application_error(-20005, 'Failed to acknowledge: "'||p_client||'", "'||p_service||'"');
+        end if;
+    end confirm;
 
 end at_delta2;
 /
