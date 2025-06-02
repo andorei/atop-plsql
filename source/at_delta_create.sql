@@ -2,13 +2,16 @@ create table at_cdc_ (
     capture    varchar2(20),
     cdc_type   varchar2(10) not null,
     descr      varchar2(4000),
+    preserved  number(1) default 0 not null,
     constraint at_cdc_pk primary key (capture),
-    constraint at_cdc_ck check (cdc_type in ('deltascn', 'orarowscn', 'seqn'))
+    constraint at_cdc_ck check (cdc_type in ('deltascn', 'orarowscn', 'seqn')),
+    constraint at_cdc_preserved_ck check (preserved in (0, 1))
 );
 comment on table at_cdc_ is 'Change data captures';
 comment on column at_cdc_.capture is 'Capture name';
 comment on column at_cdc_.cdc_type is 'CDC type';
 comment on column at_cdc_.descr is 'Capture description';
+comment on column at_cdc_.preserved is '1 - do not delete processed rows; 0 - delete processed rows';
 
 create table at_svs_ (
     service    varchar2(30),

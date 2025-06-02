@@ -6,9 +6,10 @@ Changelog
     2016-08-30 Andrei Trofimov Create package
     2018-04-06 Andrei Trofimov Redesign API
     2023-01-23 Andrei Trofimov Add seqn capture type
+    2024-10-19 Andrei Trofimov Add preserve_capture and release_capture
 
 ********************************************************************************
-Copyright (C) 2016-2023 by Andrei Trofimov
+Copyright (C) 2016-2024 by Andrei Trofimov
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -81,6 +82,15 @@ THE SOFTWARE.
     -- (Create job to run at_delta.purge_cdc daily.)
     procedure purge_cdc;
 
+    -- Preserve CDC table: do not allow purge_cdc delete processed rows.
+    procedure preserve_capture(
+        p_capture at_cdc_.capture%type
+    );
+
+    -- Release CDC table: allow purge_cdc delete processed rows.
+    procedure release_capture(
+        p_capture at_cdc_.capture%type
+    );
 end at_delta;
 /
 create or replace package body at_delta is
@@ -238,6 +248,54 @@ create or replace package body at_delta is
         end if;
     end delete_capture;
 
+    -- Preserve CDC table: do not allow purge_cdc delete processed rows.
+    procedure preserve_capture(
+        p_capture at_cdc_.capture%type
+    ) is
+        l_cdc_type at_cdc_.cdc_type%type;
+        l_count pls_integer;
+    begin
+        if not capture_exists(p_capture) then
+            raise_application_error(
+                at_exc.c_does_not_exist_code,
+                'Capture "'||g_capture||'" does not exist.'
+            );
+        end if;
+        update at_cdc_ set preserved = 1
+        where capture = upper(g_capture)
+        ;
+        if sql%rowcount = 0 then
+            raise_application_error(
+                at_exc.c_general_error_code,
+                'Failed to preserve capture "'||g_capture||'".'
+            );
+        end if;
+    end preserve_capture;
+
+    -- Release CDC table: allow purge_cdc delete processed rows.
+    procedure release_capture(
+        p_capture at_cdc_.capture%type
+    ) is
+        l_cdc_type at_cdc_.cdc_type%type;
+        l_count pls_integer;
+    begin
+        if not capture_exists(p_capture) then
+            raise_application_error(
+                at_exc.c_does_not_exist_code,
+                'Capture "'||g_capture||'" does not exist.'
+            );
+        end if;
+        update at_cdc_ set preserved = 0
+        where capture = upper(g_capture)
+        ;
+        if sql%rowcount = 0 then
+            raise_application_error(
+                at_exc.c_general_error_code,
+                'Failed to release capture "'||g_capture||'".'
+            );
+        end if;
+    end release_capture;
+
     -- Create CDC client's view and trigger.
     procedure create_client(
         p_client at_svs_.client%type
@@ -378,6 +436,7 @@ create or replace package body at_delta is
             from at_svs_ svs, at_cdc_ cdc
             where cdc_type = 'deltascn'
                 and svs.capture = cdc.capture
+                and cdc.preserved = 0
             group by svs.capture
         ) loop
             if capture_exists(r.capture) then
@@ -394,6 +453,7 @@ create or replace package body at_delta is
             from at_svs_ svs, at_cdc_ cdc
             where cdc_type = 'seqn'
                 and svs.capture = cdc.capture
+                and cdc.preserved = 0
             group by svs.capture
         ) loop
             if capture_exists(r.capture) then

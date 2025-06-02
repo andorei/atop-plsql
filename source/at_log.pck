@@ -91,7 +91,7 @@ create or replace package body at_log is
     c_error constant at_log_.kind%type := 'e';
     c_warn  constant at_log_.kind%type := 'w';
     c_keep  constant at_log_.kind%type := 'p';
-    
+
     -- Internal log procedure
     procedure log_(
         p_kind     at_log_.kind%type,
@@ -105,9 +105,9 @@ create or replace package body at_log is
         insert into at_log_ (
             id, when, kind, message, addinfo, progname, username, tag)
         values (
-            at_log_seq.nextval, 
-            systimestamp, 
-            p_kind, 
+            at_log_seq.nextval,
+            systimestamp,
+            p_kind,
             p_message,
             p_addinfo,
             p_progname,
@@ -135,7 +135,7 @@ create or replace package body at_log is
                     when p_addinfo is null then
                         -- beautiful is better than ugly :)
                         rpad('----- Error Stack -', 29, '-') || at_env.nl ||
-                        dbms_utility.format_error_stack || 
+                        dbms_utility.format_error_stack ||
                         rpad('----- Error Backtrace -', 29, '-') || at_env.nl ||
                         dbms_utility.format_error_backtrace ||
                         --'----- PL/SQL Call Stack -----' || at_env.nl ||
@@ -145,10 +145,10 @@ create or replace package body at_log is
                 end,
             p_username => p_username,
             p_tag      => p_tag
-        );        
+        );
         commit; -- autonomous transaction
     end debug;
-    
+
     -- Log error data using autonomous transaction.
     procedure error(
         p_progname at_log_.progname%type,
@@ -168,7 +168,7 @@ create or replace package body at_log is
                     when p_addinfo is null then
                         -- beautiful is better than ugly :)
                         rpad('----- Error Stack -', 29, '-') || at_env.nl ||
-                        dbms_utility.format_error_stack || 
+                        dbms_utility.format_error_stack ||
                         rpad('----- Error Backtrace -', 29, '-') || at_env.nl ||
                         dbms_utility.format_error_backtrace ||
                         --'----- PL/SQL Call Stack -----' || at_env.nl ||
@@ -178,7 +178,7 @@ create or replace package body at_log is
                 end,
             p_username => p_username,
             p_tag      => p_tag
-        );        
+        );
         commit; -- autonomous transaction
     end error;
 
@@ -200,7 +200,7 @@ create or replace package body at_log is
                     when p_addinfo is null then
                         -- beautiful is better than ugly :)
                         rpad('----- Error Stack -', 29, '-') || at_env.nl ||
-                        dbms_utility.format_error_stack || 
+                        dbms_utility.format_error_stack ||
                         rpad('----- Error Backtrace -', 29, '-') || at_env.nl ||
                         dbms_utility.format_error_backtrace ||
                         --'----- PL/SQL Call Stack -----' || at_env.nl ||
@@ -210,7 +210,7 @@ create or replace package body at_log is
                 end,
             p_username => p_username,
             p_tag      => p_tag
-        );        
+        );
     end warn;
 
     -- Log information within current transaction.
@@ -224,7 +224,7 @@ create or replace package body at_log is
     begin
         log_(c_info, p_progname, p_message, p_addinfo, p_username, p_tag);
     end info;
-    
+
     -- Log information within current transaction to keep for a long time.
     procedure keep(
         p_progname at_log_.progname%type,
@@ -248,11 +248,11 @@ create or replace package body at_log is
     begin
         loop
             if p_purge_all then
-                delete from at_log_ 
+                delete from at_log_
                 where when < trunc(sysdate - p_keep_days)
                     and rownum <= l_rows_per_commit;
             else
-                delete from at_log_ 
+                delete from at_log_
                 where when < trunc(sysdate - p_keep_days)
                     and kind != c_keep
                     and rownum <= l_rows_per_commit;

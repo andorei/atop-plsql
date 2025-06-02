@@ -33,7 +33,7 @@ THE SOFTWARE.
     c_does_not_exist_code constant pls_integer := -20003;
     c_already_exists_code constant pls_integer := -20004;
     c_general_error_code constant pls_integer := -20005;
-    
+
     assertion_error exception;
     pragma exception_init(assertion_error, -20001);
     invalid_argument exception;
@@ -44,13 +44,13 @@ THE SOFTWARE.
     pragma exception_init(already_exists, -20004);
     general_error exception;
     pragma exception_init(general_error, -20005);
-    
+
     -- Raise application error with p_message and p_error_code.
     procedure fail(
         p_message varchar2 default null,
         p_error_code pls_integer default c_general_error_code
     );
-    
+
     -- Raise assertion error with p_message unless p_condition is true.
     procedure assert(p_condition boolean, p_message varchar2 default null);
 
@@ -71,7 +71,7 @@ create or replace package body at_exc is
     begin
         raise_application_error(p_error_code, nvl(p_message, '[no message]'));
     end fail;
-            
+
     -- Raise assertion_error with p_message unless p_condition is true.
     procedure assert(p_condition boolean, p_message varchar2 default null)
     is
@@ -80,9 +80,9 @@ create or replace package body at_exc is
             raise_application_error(
                 c_assertion_error_code,
                 'Assertion error' ||
-                case 
-                    when p_message is not null then 
-                        ': ' || p_message 
+                case
+                    when p_message is not null then
+                        ': ' || p_message
                     else ''
                 end
             );
@@ -97,9 +97,9 @@ create or replace package body at_exc is
             raise_application_error(
                 c_invalid_argument_code,
                 'Invalid argument' ||
-                case 
-                    when p_message is not null then 
-                        ': ' || p_message 
+                case
+                    when p_message is not null then
+                        ': ' || p_message
                     else ''
                 end
             );
@@ -109,7 +109,7 @@ create or replace package body at_exc is
     procedure demo
     is
     begin
-        
+
         declare
             -- let these be parameters
             p_one varchar2(50) := 'hello';
@@ -121,7 +121,7 @@ create or replace package body at_exc is
             when at_exc.invalid_argument or at_exc.assertion_error then
                 at_out.p(sqlerrm);
         end;
-        
+
         declare
             -- let these be parameters
             p_one varchar2(50) := 'hello';
@@ -134,6 +134,6 @@ create or replace package body at_exc is
         end;
 
     end demo;
-*/    
+*/
 end at_exc;
 /
